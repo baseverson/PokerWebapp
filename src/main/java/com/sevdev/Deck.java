@@ -1,0 +1,63 @@
+package com.sevdev;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Stack;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+public class Deck {
+
+    private String[] suits = {"Spade", "Diamond", "Club", "Heart"};
+    private String[] ranks = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
+
+    private Stack<Card> cardStack;
+    //private ArrayList<Card> cardList;
+    private Iterator<Card> iter;
+
+    /**
+     * Method to initialize a deck and randomize the contents.
+     */
+    public void initialize() {
+        //cardList = new ArrayList<Card>();
+        cardStack = new Stack<Card>();
+
+        for (String suit : suits) {
+            for (String rank : ranks) {
+                //cardList.add(new Card(suit, rank));
+                cardStack.push(new Card(suit, rank));
+            }
+        }
+
+        //Collections.shuffle(cardList);
+        Collections.shuffle(cardStack);
+
+        //iter = cardList.iterator();
+    }
+
+    /**
+     * Method to return the contents of the deck in a json string.
+     *
+     * @return String that will be returned as a application/json.
+     */
+    public String getDeckAsJSON() {
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(cardStack);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "";
+    }
+
+    public static void main(String[] args) {
+        Deck myDeck = new Deck();
+        myDeck.initialize();
+        myDeck.getDeckAsJSON();
+    }
+
+}
