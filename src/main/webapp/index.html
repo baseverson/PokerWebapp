@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="css/Poker.css">
+  </head>
+
+  <body>
+
+    <script src="javascript/cookies.js"></script>
+    <script src="javascript/Poker.js"></script>
+
+    <h2>Brandt's Poker Room (Work in progress)</h2>
+
+    <table>
+    <tbody>
+      <tr>
+        <!-- Display the current player. This will get updated by the "updateDisplayedPlayerName" javascript below. -->
+        <td>Current Player:</td>
+        <td><div id="PlayerName" style="color:blue">None</div></td>
+      </tr>
+      <tr>
+        <!-- Input field and button to allow the user to enter/change the player name. Relies on a cookie to store the name. -->
+        <td><input id="newPlayerName"></td>
+        <td><button type="button" onclick="setPlayerName()">Change User</button></td>
+      </tr>
+    </tbody>
+    </table>
+
+    <br><br>
+    <script>
+      // Updates the player name on page load to whatever is stored in the cookie
+      updateDisplayedPlayerName();
+    </script>
+
+    <!-- The board - common cards -->
+    <table>
+      <thead>Board</thead>
+      <tr>
+        <td><img id="board1" src="graphics/back.png" alt="Card 1" width="100" height="150"></td>
+        <td><img id="board2" src="graphics/back.png" alt="Card 2" width="100" height="150"></td>
+        <td><img id="board3" src="graphics/back.png" alt="Card 3" width="100" height="150"></td>
+        <td><img id="board4" src="graphics/back.png" alt="Card 4" width="100" height="150"></td>
+        <td><img id="board5" src="graphics/back.png" alt="Card 5" width="100" height="150"></td>
+      </tr>
+    </table>
+
+    <!-- The pot -->
+    <table>
+      <tr>
+        <td>Pot: </td>
+        <td><div id="pot" style="color:blue"><b>0</b></div></td>
+      </tr>
+    </table>
+
+    <!-- Table Seats - to be filled with Players -->
+    <br><br>
+    <table id="Table" border="2">
+      <thead>Seats  <button type="button" onClick="updateSeatDisplay(null)">Refresh</button></thead>
+      <tbody id="TableBody">
+      </tbody>
+
+    </table>
+
+  <script>
+    // Read the current state of the table and update the page.
+    updateTableDisplay();
+  </script>
+
+  </body>
+
+</html>
