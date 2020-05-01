@@ -36,7 +36,16 @@ function getTableInfo() {
     var playerName = getCookie("PlayerName");
     var tableId = 0;
 
-    // TODO: get table info from server and parse into javascript object
+    // Send request to the server to get the table info
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            updateTableDisplay(this.responseText);
+        }
+    };
+    xhttp.open("GET", "http://192.168.86.16:8080/PokerServer/rest/PokerTable/getTableState", true);
+    xhttp.setRequestHeader("Content-type", "application/json");
+    xhttp.send();
 }
 
 /*
@@ -44,13 +53,16 @@ function getTableInfo() {
  *
  * Returns: none
  */
-function updateTableDisplay() {
-    // TODO: Retrieve the table info from the server and parse it into a javascript object
-    //var tableInfo = JSON.parse(getTableInfo());
-    var tableInfo = null;
+function updateTableDisplay(tableStateAsJSON) {
+    var tableInfo = JSON.parse(tableStateAsJSON);
 
     updatePotDisplay(tableInfo);
     updateSeatDisplay(tableInfo);
+    updateBoardDisplay(tableInfo);
+
+    // TODO: REMOVE - TESTING ONLY
+    // TODO: Retrieve the table info from the server and parse it into a javascript object
+    document.getElementById("TestArea").innerHTML = tableStateAsJSON;
 }
 
 /*
@@ -59,7 +71,7 @@ function updateTableDisplay() {
  * Returns: none
  */
 function updatePotDisplay(tableInfo) {
-    // TODO
+    document.getElementById("pot").innerHTML = tableInfo.pot;
 }
 
 /*
@@ -71,7 +83,7 @@ function updateSeatDisplay(tableInfo) {
     var tableDisplay = "";
     var numSeats = 8;
 
-    for (i=1; i<=numSeats; i++) {
+    for (i=0; i<numSeats; i++) {
         tableDisplay += getSingleSeatDisplay(i, tableInfo);
     }
 
@@ -84,22 +96,24 @@ function updateSeatDisplay(tableInfo) {
  * Returns: none
  */
 function getSingleSeatDisplay(seatNum, tableInfo) {
-    // TODO
-
     var outputHTML = "";
 
     // Start of seat row. Each seat row contains 3 cells (columns).
-    outputHTML += "<tr>";
+    if (tableInfo.currentAction == seatNum+1) {
+        outputHTML += "<tr style='background-color:#FFC2B3'>";
+    }
+    else {
+        outputHTML += "<tr style='background-color:#FFFFFF'>";
+    }
 
     //
     // First cell - Player info
     //
     outputHTML += "<td>";
-    outputHTML += "Seat #" + seatNum + "<br><br>";
+    outputHTML += "Seat #" + (seatNum+1) + "<br><br>";
 
     // If the seat is open, set the player name to 'OPEN' and display a button to allow a user to sit down.
-    // TODO if (table info says seat is open)
-    if (true) {
+    if (tableInfo.seats[seatNum]==null) {
         // Add OPEN for player name
         outputHTML += "OPEN<br>";
         outputHTML += "<button type='button' onClick='sitDown(" + seatNum + ")'>Sit Here</button>";
@@ -119,10 +133,8 @@ function getSingleSeatDisplay(seatNum, tableInfo) {
 
     outputHTML += "<td>"
 
-    // TODO get cards from the table info.
     // If the seat is open, cards should be blank, otherwise set according to table info.
-    // TODO if (seat is open)
-    if (true) {
+    if (tableInfo.seats[seatNum]==null) {
         outputHTML += "<img src='graphics/blank.png' alt='Blank Card' width='100' height='150'>";
         outputHTML += "<img src='graphics/blank.png' alt='Blank Card' width='100' height='150'>";
     }
@@ -138,14 +150,29 @@ function getSingleSeatDisplay(seatNum, tableInfo) {
 
     outputHTML += "<td>"
 
-    // TODO - If there's special info (Dealer/SB/BB) display
-    // TODO - If there is a current bet, display it
-    // TODO - If the player is All-In, display it here
-    // TODO - If action is on this seat, display input field and button to bet
+    // If this seat is the dealer, display the dealer button.
+    if (tableInfo.dealerPosition == seatNum+1) {
+        outputHTML += "<img src='graphics/Dealer.png' alt='Dealer' width='50' height='50'>";
+    }
 
-    outputHTML += "Current Bet: 100<br><br>";
-    outputHTML += "<img src='graphics/Dealer.png' alt='Dealer' width='50' height='50'>";
-    outputHTML += "<img src='graphics/AllIn.png' alt='AllIn' width='50' height='50'>";
+    // If this seat is the small blind, display the small blind button.
+    if (tableInfo.smallBlindPosition == seatNum+1) {
+        outputHTML += "<img src='graphics/SmallBlind.png' alt='Dealer' width='50' height='50'>";
+    }
+
+    // If this seat is the big blind, display the big blind button.
+    if (tableInfo.bigBlindPosition == seatNum+1) {
+        outputHTML += "<img src='graphics/BigBlind.png' alt='Dealer' width='50' height='50'>";
+    }
+
+    // TODO: If this seat is the small blind, display the small blind button.
+    // TODO: If this seat is the big blind, display the big blind button.
+
+    // Check to see if there is player in this seat.
+    if (tableInfo.seats[seatNum]!=null) {
+        // TODO - If there is a current bet, display it
+        // TODO - If the player is All-In, display it here
+    }
 
     outputHTML += "</td>"
 
@@ -190,10 +217,43 @@ function getSingleSeatDisplay(seatNum, tableInfo) {
 }
 
 /*
+ * Updates the board in the page based on the tableInfo passed in.
+ *
+ * Returns: none
+ */
+function updateBoardDisplay(tableInfo) {
+    var cardFileName;
+
+    for (i=0; i<5; i++) {
+        if (tableInfo.board[i] == null || tableInfo.board[i].hidden) {
+            cardFileName = "back.png";
+        }
+        else {
+            cardFileName = tableInfo.board[i].rank + "_" + tableInfo.board[i].suit + ".png";
+        }
+        document.getElementById("board"+(i+1)).src = "graphics/" + cardFileName;
+    }
+}
+
+/*
  * Notify the server that the player has taken a seat.
  *
  * Returns: none
  */
 function sitDown(seatNum) {
     // TODO
+}
+
+function newGame() {
+    // Send request to the server to start a new game
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            console.log(this.responseText);
+        }
+    };
+
+    xhttp.open("GET", "http://192.168.86.16:8080/PokerServer/rest/PokerTest/newRound", true);
+    xhttp.setRequestHeader("Content-type", "test/plain");
+    xhttp.send();
 }

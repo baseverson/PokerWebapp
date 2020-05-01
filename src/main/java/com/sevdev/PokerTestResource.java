@@ -16,6 +16,16 @@ import javax.ws.rs.ext.Providers;
 @Path("PokerTest")
 public class PokerTestResource {
 
+    Table table;
+
+    /**
+     * Constructor
+     */
+    public PokerTestResource(@Context Providers providers) {
+        ContextResolver<Table> myTableResolver = providers.getContextResolver(Table.class, MediaType.WILDCARD_TYPE);
+        table =  myTableResolver.getContext(Table.class);
+    }
+
     /**
      * Method handling HTTP GET requests. The returned object will be sent
      * to the client as "text/plain" media type.
@@ -26,15 +36,6 @@ public class PokerTestResource {
     @Produces(MediaType.APPLICATION_JSON)
     public String hello() {
         return "Welcome to Brandt's Poker Server!!!";
-    }
-
-    @GET
-    @Path("getTable")
-    @Produces(MediaType.TEXT_PLAIN)
-    //public String getTableId(final @Context ContextResolver<Table> myTable) {
-    public String getTableId(@Context Providers providers) {
-        ContextResolver<Table> myTableResolver = providers.getContextResolver(Table.class, MediaType.WILDCARD_TYPE);
-        return myTableResolver.getContext(Table.class).getTableId();
     }
 
     @GET
@@ -55,10 +56,20 @@ public class PokerTestResource {
         return "New deck initialized.";
     }
 
+    @GET
+    @Path("newRound")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String newRound() {
+        table.newRound();
+        return "New round initialized.";
+    }
+
+    /*
     public static void main(String[] args) {
         PokerTestResource poker = new PokerTestResource();
         //System.out.println(poker.getTableId());
         //System.out.println(poker.getDeck());
     }
+    */
 }
 

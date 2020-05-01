@@ -10,6 +10,8 @@
     <script src="javascript/Poker.js"></script>
 
     <h2>Brandt's Poker Room (Work in progress)</h2>
+    <button type="button" onClick="newGame()">New Game</button></thead>
+    <button type="button" onClick="getTableInfo()">Refresh</button></thead>
 
     <table>
     <tbody>
@@ -27,10 +29,6 @@
     </table>
 
     <br><br>
-    <script>
-      // Updates the player name on page load to whatever is stored in the cookie
-      updateDisplayedPlayerName();
-    </script>
 
     <!-- The board - common cards -->
     <table>
@@ -55,15 +53,19 @@
     <!-- Table Seats - to be filled with Players -->
     <br><br>
     <table id="Table" border="2">
-      <thead>Seats  <button type="button" onClick="updateSeatDisplay(null)">Refresh</button></thead>
+      <thead>Seats
       <tbody id="TableBody">
       </tbody>
 
     </table>
 
+    <p id="TestArea"></p>
+
   <script>
+    // Updates the player name on page load to whatever is stored in the cookie
+    updateDisplayedPlayerName();
     // Read the current state of the table and update the page.
-    updateTableDisplay();
+    getTableInfo();
   </script>
 
   </body>

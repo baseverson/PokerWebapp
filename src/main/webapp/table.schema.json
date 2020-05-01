@@ -1,0 +1,120 @@
+{
+  "title": "Table",
+  "description": "Information describing the current table state.",
+  "type": "object",
+  "required": ["tableId", "pot", "board", "seats"],
+  "properties": {
+    "tableId": {
+      "description": "Unique table identifier.",
+      "type": "string"
+    },
+    "numSeats": {
+      "description": "Number of seats at the table.",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 12
+    },
+    "numPlayers": {
+      "description": "Number of players currently at the table.",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 12
+    },
+    "pot": {
+      "description": "Current size of the pot.",
+      "type": "number",
+      "minimum": 0
+    },
+    "dealerPosition": {
+      "description": "Current dealer position (seat number)",
+      "type": "number",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "currentAction": {
+      "description": "Seat number where the current action is.",
+      "type": "number",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "bigBlind": {
+      "description": "Big Blind amount. Small Blind and min bet can be derived from this.",
+      "type": "number",
+      "minimum": 0
+    },
+    "board": {
+      "description":  "Community cards (5)",
+      "type": "array",
+      "items": { "$ref": "#/definitions/card" },
+      "minItems": 5,
+      "maxItems": 5,
+      "uniqueItems": true
+    },
+    "seats": {
+      "description":  "Table seats",
+      "type": "array",
+      "items": { "$ref": "#/definitions/seat" },
+      "minItems": 0,
+      "maxItems": 10,
+      "uniqueItems": true
+    }
+  },
+  "definitions": {
+    "card": {
+      "type": "object",
+      "required": ["hidden"],
+      "properties": {
+        "hidden:": "boolean",
+        "rank": {
+          "type": "string",
+          "enum": [
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "J",
+            "Q",
+            "K",
+            "A"
+          ]
+        },
+        "suit": {
+          "type": "string",
+          "enum": [
+            "spades",
+            "diamonds",
+            "clubs",
+            "hearts"
+          ]
+        }
+      }
+    },
+    "seat": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": "string",
+        "stack": {
+          "type": "number",
+          "minimum": 0
+        },
+        "bet": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cards": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/card" },
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

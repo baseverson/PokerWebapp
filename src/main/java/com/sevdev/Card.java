@@ -2,10 +2,12 @@ package com.sevdev;
 
 public class Card {
 
-    private String suit;
-    private String rank;
+    public Boolean hidden;
+    public String suit;
+    public String rank;
 
     public Card(String newSuit, String newRank) {
+       hidden = false;
        suit = new String(newSuit);
        rank = new String(newRank);
     }
