@@ -1,9 +1,6 @@
 package com.sevdev;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.ContextResolver;
@@ -24,10 +21,38 @@ public class PokerTableResource {
     @GET
     @Path("getTableState")
     @Produces(MediaType.APPLICATION_JSON)
-    //public String getTableId(final @Context ContextResolver<Table> myTable) {
-    public String getTableId(@Context Providers providers) {
+    public String getTableState(@Context Providers providers, @QueryParam("playerName") String playerName) {
         ContextResolver<Table> myTableResolver = providers.getContextResolver(Table.class, MediaType.WILDCARD_TYPE);
-        return myTableResolver.getContext(Table.class).getTableStateAsJSON();
+        return myTableResolver.getContext(Table.class).getTableStateAsJSON(playerName);
+    }
+
+    /**
+     * Method handling HTTP POST requests for a player sitting down at a table.
+     *
+     * @return String confirming the player sat and at which seat.
+     */
+    @POST
+    @Path("sitDown")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String sitDown(@Context Providers providers,
+                          @QueryParam("playerName") String playerName,
+                          @QueryParam("seatNum") int seatNum) {
+        ContextResolver<Table> myTableResolver = providers.getContextResolver(Table.class, MediaType.WILDCARD_TYPE);
+        return myTableResolver.getContext(Table.class).sitDown(playerName, seatNum);
+    }
+
+    /**
+     * Method handling HTTP POST requests for a player leaving a seat at a table.
+     *
+     * @return String confirming the player left the table and which seat.
+     */
+    @POST
+    @Path("leaveTable")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String leaveTable(@Context Providers providers,
+                          @QueryParam("seatNum") int seatNum) {
+        ContextResolver<Table> myTableResolver = providers.getContextResolver(Table.class, MediaType.WILDCARD_TYPE);
+        return myTableResolver.getContext(Table.class).leaveTable(seatNum);
     }
 
     public static void main(String[] args) {

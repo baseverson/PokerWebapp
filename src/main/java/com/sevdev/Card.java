@@ -3,11 +3,11 @@ package com.sevdev;
 public class Card {
 
     public Boolean hidden;
-    public String suit;
-    public String rank;
+    private String suit;
+    private String rank;
 
     public Card(String newSuit, String newRank) {
-       hidden = false;
+       hidden = true;
        suit = new String(newSuit);
        rank = new String(newRank);
     }

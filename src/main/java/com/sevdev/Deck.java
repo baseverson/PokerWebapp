@@ -1,7 +1,6 @@
 package com.sevdev;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Stack;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,12 +17,11 @@ public class Deck {
      *
      * @return None.
      */
-    public void initializeNewDeck() {
+    public void shuffle() {
         cardStack = new Stack<Card>();
 
         for (String suit : suits) {
             for (String rank : ranks) {
-                //cardList.add(new Card(suit, rank));
                 cardStack.push(new Card(suit, rank));
             }
         }
@@ -60,7 +58,7 @@ public class Deck {
 
     public static void main(String[] args) {
         Deck myDeck = new Deck();
-        myDeck.initializeNewDeck();
+        myDeck.shuffle();
         myDeck.getDeckAsJSON();
     }
 

@@ -2,87 +2,143 @@ package com.sevdev;
 
 public class TableState {
 
-    public Integer tableId = 0;
-    public Integer numSeats = 0;
-    public Integer numPlayers = 0;
-    public Integer bigBlind = 0;
-    public Integer pot = 0;
-    public Integer dealerPosition = 0;
-    public Integer smallBlindPosition = 0;
-    public Integer bigBlindPosition = 0;
-    public Integer currentAction = 0;
-    public Card board[];
-    public Seat seats[];
+    private String playerName = new String("");
+    private Integer tableId = 0;
+    private Integer numSeats = 0;
+    private Integer numPlayers = 0;
+    private Integer bigBlind = 0;
+    private Integer pot = 0;
+    private Integer dealerPosition = 0;
+    private Integer smallBlindPosition = 0;
+    private Integer bigBlindPosition = 0;
+    private Integer currentAction = 0;
+    private RoundState roundState = RoundState.UNDEFINED;
+    private Card board[];
+    private Seat seats[];
 
-    public void initialize(Integer newTableId, Integer newNumSeats, Integer newBigBlind) {
-        tableId = newTableId;
-        numSeats = newNumSeats;
-        bigBlind = newBigBlind;
-        pot = 123;
-        dealerPosition = 1;
-        smallBlindPosition = 2;
-        bigBlindPosition = 3;
-        currentAction = 4;
-        board = new Card[5];
-        seats = new Seat[8];
-    }
+    public String getPlayerName() { return playerName; }
+    public Integer getTableId() { return tableId; }
+    public Integer getNumSeats() { return numSeats; }
+    public Integer getNumPlayers() { return numPlayers; }
+    public Integer getBigBlind() { return bigBlind; }
+    public Integer getPot() { return pot; }
+    public Integer getDealerPosition() { return dealerPosition; }
+    public Integer getSmallBlindPosition() { return smallBlindPosition; }
+    public Integer getBigBlindPosition() { return bigBlindPosition; }
+    public Integer getCurrentAction() { return currentAction; }
+    public RoundState getRoundState() { return roundState; }
+    public Card[] getBoard() { return board; }
+    public Seat[] getSeats() { return seats; }
+
+    public void setPlayerName(String newPlayerName) { playerName = newPlayerName; }
+    public void setTableId(Integer newTableId) { tableId = newTableId.intValue(); }
+    public void setNumSeats(Integer newNumSeats) { numSeats = newNumSeats.intValue(); }
+    public void setNumPlayers(Integer newNumPlayers) { numPlayers = newNumPlayers.intValue(); }
+    public void setBigBlind(Integer newBigBlind) { bigBlind = newBigBlind.intValue(); }
+    public void setPot(Integer newPot) { pot = newPot.intValue(); }
+    public void setDealerPosition(Integer newDealerPosition) { dealerPosition = newDealerPosition.intValue(); }
+    public void setSmallBlindPosition(Integer newSmallBlindPosition) { smallBlindPosition = newSmallBlindPosition.intValue(); }
+    public void setBigBlindPosition(Integer newBigBlindPosition) { bigBlindPosition = newBigBlindPosition.intValue(); }
+    public void setCurrentAction(Integer newCurrentAction) { currentAction = newCurrentAction.intValue(); }
+    public void setRoundState(RoundState newRoundState) { roundState = newRoundState; }
 
     /**
-     * Specify a player is taking an open seat.
+     * Copy board contents only for the card allowed to be displayed for the current round state.
      *
-     * @param playerId - Name of the player
-     * @param seatNum - Seat the player wants to occupy
+     * @param newBoard - board info to be copied
      */
-    public void addPlayer(String playerId, int seatNum) {
-        // TODO
-    }
+    public void setBoard(Card[] newBoard) {
+        board = new Card[newBoard.length];
 
-    /**
-     * Specify a player is leaving a seat.
-     *
-     * @param seatNum - Seat the player is vacating
-     */
-    public void removePlayer(int seatNum) {
-        // TODO
-    }
+        // Include board card info depending on the roundState
+        switch (roundState) {
+            case UNDEFINED:
+                // do nothing - leave the board cards all null
 
-    /**
-     * Reset the game for the next round.
-     */
-    public void resetGame() {
-        // Reset the board
-        for (int i=0; i<5; i++) {
-            board[i] = null;
+                break;
+
+            case PRE_FLOP:
+                // Create card content w/ empty suit and rank.
+                for (int i=0; i<board.length; i++) {
+                    board[i] = new Card("","");
+                    board[i].hidden = true;
+                }
+
+                break;
+
+            case FLOP:
+                // Create Flop content w/ rank/suit for first 3 cards, empty suit/rank for the rest.
+                for (int i=0; i<3; i++) {
+                    board[i] = new Card(board[i].getSuit(), board[i].getRank());
+                    board[i].hidden = false;
+                }
+                // Turn
+                board[3] = new Card("","");
+                board[3].hidden = true;
+                // Flop
+                board[4] = new Card("","");
+                board[4].hidden = true;
+
+                break;
+
+            case TURN:
+                // Create Flop and Turn content w/ rank/suit for first 3 cards, empty suit/rank for the rest.
+                for (int i=0; i<4; i++) {
+                    board[i] = new Card(board[i].getSuit(), board[i].getRank());
+                    board[i].hidden = false;
+                }
+                // Flop
+                board[4] = new Card("","");
+                board[4].hidden = true;
+
+                break;
+
+            case RIVER:
+            case CLEAN_UP:
+                // Create Flop and Turn content w/ rank/suit for first 3 cards, empty suit/rank for the rest.
+                for (int i=0; i<5; i++) {
+                    board[i] = new Card(board[i].getSuit(), board[i].getRank());
+                    board[i].hidden = false;
+                }
+
+                break;
         }
-
-        // TODO - clean up the pot
-        // TODO - clean up the player cards
-        // TODO - move the dealer button to the next player
-    }
-
-    public void dealPlayerCard(int seatNum, Card card) {
-
     }
 
     /**
-     * Method for passing in a card for the board.
+     * Copy only the seat info the current player is allowed to see
      *
-     * @param cardNum - specifies the card in the board
-     * @param card - card dealt to the board
+     * @param newSeats - seat info to copy from
      */
-    public void dealBoardCard(int cardNum, Card card) {
-        board[cardNum] = card;
-    }
+    public void setSeats(Seat[] newSeats) {
+        seats = new Seat[numSeats];
 
-    public void incrementDealerPosition() {
-        // TODO
-    }
+        for (int i=0; i<numSeats; i++) {
+            seats[i] = new Seat(newSeats[i].getSeatNum().intValue());
 
-    public void incrementActionPosition() {
-        // TODO
-    }
+            // If there is a player in this seat, copy the player info
+            if (newSeats[i].getPlayer() != null) {
+                seats[i].setPlayer(new Player(newSeats[i].getPlayer().getPlayerName(),
+                                              newSeats[i].getPlayer().getStackSize()));
 
-    public void newRound() {
-        // TODO
+                // Only show the card info if this is the seat for the current player
+                Card card1, card2;
+                if (seats[i].getPlayer().getPlayerName() == playerName) {
+                    Card[] newCards = newSeats[i].getCards();
+                    card1 = new Card(newCards[0].getSuit(), newCards[0].getRank());
+                    card1.hidden = false;
+                    card2 = new Card(newCards[0].getSuit(), newCards[0].getRank());
+                    card2.hidden = false;
+                }
+                else {
+                    card1 = new Card("", "");
+                    card1.hidden = true;
+                    card2 = new Card("", "");
+                    card2.hidden = true;
+                }
+                seats[i].addCard(0, card1);
+                seats[i].addCard(1, card2);
+            }
+        }
     }
 }

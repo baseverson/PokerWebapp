@@ -60,8 +60,27 @@ public class PokerTestResource {
     @Path("newRound")
     @Produces(MediaType.TEXT_PLAIN)
     public String newRound() {
-        table.newRound();
+        try {
+            table.newRound();
+        }
+        catch (Exception e) {
+            return e.toString();
+        }
         return "New round initialized.";
+    }
+
+    /**
+     * Method handling HTTP GET requests for the complete table state. The returned object will be sent
+     * to the client as "application/json" media type.
+     *
+     * @return String that will be returned as a text/plain response.
+     */
+    @GET
+    @Path("getTotalTableState")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getTableState(@Context Providers providers) {
+        ContextResolver<Table> myTableResolver = providers.getContextResolver(Table.class, MediaType.WILDCARD_TYPE);
+        return myTableResolver.getContext(Table.class).getTableStateAsJSON("ALL");
     }
 
     /*

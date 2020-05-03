@@ -43,7 +43,7 @@ function getTableInfo() {
             updateTableDisplay(this.responseText);
         }
     };
-    xhttp.open("GET", "http://192.168.86.16:8080/PokerServer/rest/PokerTable/getTableState", true);
+    xhttp.open("GET", "http://192.168.86.16:8080/PokerServer/rest/PokerTable/getTableState?playerName=" + playerName, true);
     xhttp.setRequestHeader("Content-type", "application/json");
     xhttp.send();
 }
@@ -83,8 +83,8 @@ function updateSeatDisplay(tableInfo) {
     var tableDisplay = "";
     var numSeats = 8;
 
-    for (i=0; i<numSeats; i++) {
-        tableDisplay += getSingleSeatDisplay(i, tableInfo);
+    for (seatCount=0; seatCount<numSeats; seatCount++) {
+        tableDisplay += getSingleSeatDisplay(seatCount, tableInfo);
     }
 
     document.getElementById("TableBody").innerHTML = tableDisplay;
@@ -115,20 +115,21 @@ function getSingleSeatDisplay(seatNum, tableInfo) {
     // If the seat is open, set the player name to 'OPEN' and display a button to allow a user to sit down.
     if (tableInfo.seats[seatNum]==null) {
         // Add OPEN for player name
-        outputHTML += "OPEN<br>";
-        outputHTML += "<button type='button' onClick='sitDown(" + seatNum + ")'>Sit Here</button>";
+        outputHTML += "OPEN<br><br>";
+        outputHTML += "<button type='button' onClick='sitDown(" + (seatNum+1) + ")'>Sit Here</button>";
     }
     // Else, display the player name and stack size.
     else {
-        // TODO
-        // TODO - Add player name
-        // TODO - Add play stack size
+        // Fill in the player info
+        outputHTML += tableInfo.seats[seatNum].playerName + "<br>";
+        outputHTML += "Stack: " + tableInfo.seats[seatNum].stackSize + "<br><br>";
+        outputHTML += "<button type='button' onClick='leaveTable(" + (seatNum+1) + ")'>Leave Table</button>";
     }
 
     outputHTML += "</td>";
 
     //
-    // Second cell - Player info
+    // Second cell - Cards
     //
 
     outputHTML += "<td>"
@@ -139,7 +140,15 @@ function getSingleSeatDisplay(seatNum, tableInfo) {
         outputHTML += "<img src='graphics/blank.png' alt='Blank Card' width='100' height='150'>";
     }
     else {
-        // TODO update card graphics based on table info
+        for (cardCount=0; cardCount<tableInfo.seats[seatNum].cards.length; cardCount++) {
+            if (tableInfo.seats[seatNum].cards[cardCount]==null) {
+                outputHTML += "<img src='graphics/blank.png' alt='Blank Card' width='100' height='150'>";
+            }
+            else {
+                var fileName = tableInfo.seats[seatNum].cards[cardCount].rank + "_" + tableInfo.seats[seatNum].cards[cardCount].suit + ".png";
+                outputHTML += "<img src='graphics/" + fileName + "' alt='Card' width='100' height='150'>";
+            }
+        }
     }
 
     outputHTML += "</td>"
@@ -181,39 +190,6 @@ function getSingleSeatDisplay(seatNum, tableInfo) {
     //end of seat row
     outputHTML += "</tr>";
     return outputHTML;
-
-/*
-        <tr>
-          <!-- First Cell - Player info -->
-          <td>
-            <table>
-              <tr>
-                <td id="Seat1_Name">Seat #1<br><br>OPEN<br><button type="button" onlick="">Sit Here</button></td>
-
-              </tr>
-              <tr>
-                <td id="Seat1_Stack"></td>
-              </tr>
-            </table>
-          </td>
-          <!-- Second Cell - Cards -->
-          <td>
-            <img id="Seat1_Card1" src="../graphics/blank.png" alt="Card Back" width="100" height="150">
-            <img id="Seat1_Card2" src="../graphics/blank.png" alt="Card Back" width="100" height="150">
-          </td>
-          <!-- Third Cell - Current Bet, Special Info (e.g. Dealer, BB, SB, All-In) -->
-          <td>
-            <table>
-              <tr>
-                <td id="Seat1_Bet"></td>
-              </tr>
-              <tr>
-                <td id="Seat1_Info"></td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-*/
 }
 
 /*
@@ -224,24 +200,53 @@ function getSingleSeatDisplay(seatNum, tableInfo) {
 function updateBoardDisplay(tableInfo) {
     var cardFileName;
 
-    for (i=0; i<5; i++) {
-        if (tableInfo.board[i] == null || tableInfo.board[i].hidden) {
+    for (boardCount=0; boardCount<5; boardCount++) {
+        if (tableInfo.board[boardCount] == null || tableInfo.board[boardCount].hidden) {
             cardFileName = "back.png";
         }
         else {
-            cardFileName = tableInfo.board[i].rank + "_" + tableInfo.board[i].suit + ".png";
+            cardFileName = tableInfo.board[boardCount].rank + "_" + tableInfo.board[boardCount].suit + ".png";
         }
-        document.getElementById("board"+(i+1)).src = "graphics/" + cardFileName;
+        document.getElementById("board"+(boardCount+1)).src = "graphics/" + cardFileName;
     }
 }
 
 /*
- * Notify the server that the player has taken a seat.
+ * Notify the server that the player has requested to take a seat.
  *
  * Returns: none
  */
 function sitDown(seatNum) {
-    // TODO
+    // Send request to the server for a player to sit at a seat
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            console.log(this.responseText);
+        }
+    };
+
+    xhttp.open("POST", "http://192.168.86.16:8080/PokerServer/rest/PokerTable/sitDown?playerName=" + getPlayerName() + "&seatNum=" + seatNum, true);
+    xhttp.setRequestHeader("Content-type", "test/plain");
+    xhttp.send();
+}
+
+/*
+ * Notify the server that the player has requested to leave the table.
+ *
+ * Returns: none
+ */
+function leaveTable(seatNum) {
+    // Send request to the server for a player to leave the table
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            console.log(this.responseText);
+        }
+    };
+
+    xhttp.open("POST", "http://192.168.86.16:8080/PokerServer/rest/PokerTable/leaveTable?seatNum=" + seatNum, true);
+    xhttp.setRequestHeader("Content-type", "test/plain");
+    xhttp.send();
 }
 
 function newGame() {
