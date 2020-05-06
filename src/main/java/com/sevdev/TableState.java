@@ -111,6 +111,8 @@ public class TableState {
      * @param newSeats - seat info to copy from
      */
     public void setSeats(Seat[] newSeats) {
+        System.out.println("Setting seats display for '" + playerName + "'");
+
         seats = new Seat[numSeats];
 
         for (int i=0; i<numSeats; i++) {
@@ -122,22 +124,29 @@ public class TableState {
                                               newSeats[i].getPlayer().getStackSize()));
 
                 // Only show the card info if this is the seat for the current player
-                Card card1, card2;
-                if (seats[i].getPlayer().getPlayerName() == playerName) {
-                    Card[] newCards = newSeats[i].getCards();
-                    card1 = new Card(newCards[0].getSuit(), newCards[0].getRank());
-                    card1.hidden = false;
-                    card2 = new Card(newCards[0].getSuit(), newCards[0].getRank());
-                    card2.hidden = false;
+                Card[] displayCards = new Card[2];
+
+                Card[] newCards = newSeats[i].getCards();
+                if (newCards[0]!=null && newCards[1]!= null) {
+                    System.out.println(seats[i].getPlayer().getPlayerName() + " ?= " + playerName);
+                    if (seats[i].getPlayer().getPlayerName().equals(playerName)) {
+                        System.out.println("Showing cards.");
+                        displayCards[0] = new Card(newCards[0].getSuit(), newCards[0].getRank());
+                        displayCards[0].hidden = false;
+                        displayCards[1] = new Card(newCards[1].getSuit(), newCards[1].getRank());
+                        displayCards[1].hidden = false;
+                    }
+                    else {
+                        System.out.println("Hiding cards.");
+                        displayCards[0] = new Card("", "");
+                        displayCards[0].hidden = true;
+                        displayCards[1] = new Card("", "");
+                        displayCards[1].hidden = true;
+                    }
                 }
-                else {
-                    card1 = new Card("", "");
-                    card1.hidden = true;
-                    card2 = new Card("", "");
-                    card2.hidden = true;
+                for (int j=0; j<displayCards.length; j++) {
+                    seats[i].addCard(j, displayCards[j]);
                 }
-                seats[i].addCard(0, card1);
-                seats[i].addCard(1, card2);
             }
         }
     }

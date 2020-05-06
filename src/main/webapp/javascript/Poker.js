@@ -1,3 +1,5 @@
+var tableInfo = null;
+
 /*
  * Stores the new player name in a cookie and updates the display in the page.
  */
@@ -27,6 +29,22 @@ function updateDisplayedPlayerName() {
     document.getElementById("PlayerName").style.color = "blue";
 }
 
+/**
+  * Finds the seat number occupied by playerName. Returns 0 if playerName is not found in a seat.
+  */
+function seatNumForPlayer(playerName){
+    playerAtSeat = 0;
+    if (tableInfo != null) {
+        for (i=0; i<tableInfo.seats.length; i++) {
+            if (tableInfo.seats[i].player != null && tableInfo.seats[i].player.playerName == playerName) {
+                playerAtSeat = tableInfo.seats[i].seatNum;
+                break;
+            }
+        }
+    }
+    return playerAtSeat;
+}
+
 /*
  * Retrieves the current table info from the server and converts it into a javascript object.
  *
@@ -40,7 +58,8 @@ function getTableInfo() {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            updateTableDisplay(this.responseText);
+            tableInfo = JSON.parse(this.responseText);
+            updateTableDisplay();
         }
     };
     xhttp.open("GET", "http://192.168.86.16:8080/PokerServer/rest/PokerTable/getTableState?playerName=" + playerName, true);
@@ -53,12 +72,12 @@ function getTableInfo() {
  *
  * Returns: none
  */
-function updateTableDisplay(tableStateAsJSON) {
-    var tableInfo = JSON.parse(tableStateAsJSON);
+function updateTableDisplay() {
 
-    updatePotDisplay(tableInfo);
-    updateSeatDisplay(tableInfo);
-    updateBoardDisplay(tableInfo);
+    updateRoundStateDisplay();
+    updatePotDisplay();
+    updateBoardDisplay();
+    updateSeatDisplay();
 
     // TODO: REMOVE - TESTING ONLY
     // TODO: Retrieve the table info from the server and parse it into a javascript object
@@ -66,12 +85,39 @@ function updateTableDisplay(tableStateAsJSON) {
 }
 
 /*
+ * Updates the state of the table.
+ */
+function updateRoundStateDisplay() {
+    document.getElementById("roundState").innerHTML = tableInfo.roundState;
+}
+
+/*
  * Updates the pot in the page based on the tableInfo passed in.
  *
  * Returns: none
  */
-function updatePotDisplay(tableInfo) {
+function updatePotDisplay() {
     document.getElementById("pot").innerHTML = tableInfo.pot;
+}
+
+/*
+ * Updates the board in the page based on the tableInfo passed in.
+ */
+function updateBoardDisplay() {
+    var cardFileName;
+
+    for (boardCount=0; boardCount<5; boardCount++) {
+        if (tableInfo.board[boardCount] == null) {
+            cardFileName = "blank.png";
+        }
+        else if (tableInfo.board[boardCount].hidden) {
+            cardFileName = "back.png";
+        }
+        else {
+            cardFileName = tableInfo.board[boardCount].rank + "_" + tableInfo.board[boardCount].suit + ".png";
+        }
+        document.getElementById("board"+(boardCount+1)).src = "graphics/" + cardFileName;
+    }
 }
 
 /*
@@ -79,7 +125,7 @@ function updatePotDisplay(tableInfo) {
  *
  * Returns: none
  */
-function updateSeatDisplay(tableInfo) {
+function updateSeatDisplay() {
     var tableDisplay = "";
     var numSeats = 8;
 
@@ -95,7 +141,7 @@ function updateSeatDisplay(tableInfo) {
  *
  * Returns: none
  */
-function getSingleSeatDisplay(seatNum, tableInfo) {
+function getSingleSeatDisplay(seatNum) {
     var outputHTML = "";
 
     // Start of seat row. Each seat row contains 3 cells (columns).
@@ -113,17 +159,25 @@ function getSingleSeatDisplay(seatNum, tableInfo) {
     outputHTML += "Seat #" + (seatNum+1) + "<br><br>";
 
     // If the seat is open, set the player name to 'OPEN' and display a button to allow a user to sit down.
-    if (tableInfo.seats[seatNum]==null) {
+    if (tableInfo.seats[seatNum].player == null ) {
         // Add OPEN for player name
         outputHTML += "OPEN<br><br>";
-        outputHTML += "<button type='button' onClick='sitDown(" + (seatNum+1) + ")'>Sit Here</button>";
+
+        // If the current player is not already sitting at a seat, display the "Sit Here" button.
+        if (seatNumForPlayer(getPlayerName()) == 0) {
+            outputHTML += "<button type='button' onClick='sitDown(" + (seatNum+1) + ")'>Sit Here</button>";
+        }
     }
     // Else, display the player name and stack size.
     else {
         // Fill in the player info
-        outputHTML += tableInfo.seats[seatNum].playerName + "<br>";
-        outputHTML += "Stack: " + tableInfo.seats[seatNum].stackSize + "<br><br>";
-        outputHTML += "<button type='button' onClick='leaveTable(" + (seatNum+1) + ")'>Leave Table</button>";
+        outputHTML += tableInfo.seats[seatNum].player.playerName + "<br>";
+        outputHTML += "Stack: " + tableInfo.seats[seatNum].player.stackSize + "<br><br>";
+
+        // If the current player is sitting at this seat, display the "Leave Table" button.
+        if (seatNumForPlayer(getPlayerName()) == (seatNum + 1)) {
+            outputHTML += "<button type='button' onClick='leaveTable(" + (seatNum+1) + ")'>Leave Table</button>";
+        }
     }
 
     outputHTML += "</td>";
@@ -132,26 +186,25 @@ function getSingleSeatDisplay(seatNum, tableInfo) {
     // Second cell - Cards
     //
 
-    outputHTML += "<td>"
-
-    // If the seat is open, cards should be blank, otherwise set according to table info.
-    if (tableInfo.seats[seatNum]==null) {
-        outputHTML += "<img src='graphics/blank.png' alt='Blank Card' width='100' height='150'>";
-        outputHTML += "<img src='graphics/blank.png' alt='Blank Card' width='100' height='150'>";
-    }
-    else {
-        for (cardCount=0; cardCount<tableInfo.seats[seatNum].cards.length; cardCount++) {
-            if (tableInfo.seats[seatNum].cards[cardCount]==null) {
-                outputHTML += "<img src='graphics/blank.png' alt='Blank Card' width='100' height='150'>";
-            }
-            else {
-                var fileName = tableInfo.seats[seatNum].cards[cardCount].rank + "_" + tableInfo.seats[seatNum].cards[cardCount].suit + ".png";
-                outputHTML += "<img src='graphics/" + fileName + "' alt='Card' width='100' height='150'>";
-            }
+    var fileName;
+    for (cardCount=0; cardCount<tableInfo.seats[seatNum].cards.length; cardCount++) {
+        if (tableInfo.seats[seatNum].player==null) {
+            fileName = "blank.png"
         }
+        if (tableInfo.seats[seatNum].cards[cardCount]==null) {
+            //outputHTML += "<img src='graphics/blank.png' alt='Blank Card' width='100' height='150'>";
+            fileName = "blank.png"
+        }
+        else if (tableInfo.seats[seatNum].cards[cardCount].hidden==true) {
+            //outputHTML += "<img src='graphics/back.png' alt='Card Back' width='100' height='150'>";
+            fileName = "back.png"
+        }
+        else {
+            fileName = tableInfo.seats[seatNum].cards[cardCount].rank + "_" + tableInfo.seats[seatNum].cards[cardCount].suit + ".png";
+            //outputHTML += "<img src='graphics/" + fileName + "' alt='Card' width='100' height='150'>";
+        }
+        outputHTML += "<td><img src='graphics/" + fileName + "' alt='Card' width='100' height='150'></td>";
     }
-
-    outputHTML += "</td>"
 
     //
     // Third cell - Special Player info (Bet, Dealer/SB/BB, All-In
@@ -174,9 +227,6 @@ function getSingleSeatDisplay(seatNum, tableInfo) {
         outputHTML += "<img src='graphics/BigBlind.png' alt='Dealer' width='50' height='50'>";
     }
 
-    // TODO: If this seat is the small blind, display the small blind button.
-    // TODO: If this seat is the big blind, display the big blind button.
-
     // Check to see if there is player in this seat.
     if (tableInfo.seats[seatNum]!=null) {
         // TODO - If there is a current bet, display it
@@ -185,30 +235,11 @@ function getSingleSeatDisplay(seatNum, tableInfo) {
 
     outputHTML += "</td>"
 
-
-
+    //
     //end of seat row
+    //
     outputHTML += "</tr>";
     return outputHTML;
-}
-
-/*
- * Updates the board in the page based on the tableInfo passed in.
- *
- * Returns: none
- */
-function updateBoardDisplay(tableInfo) {
-    var cardFileName;
-
-    for (boardCount=0; boardCount<5; boardCount++) {
-        if (tableInfo.board[boardCount] == null || tableInfo.board[boardCount].hidden) {
-            cardFileName = "back.png";
-        }
-        else {
-            cardFileName = tableInfo.board[boardCount].rank + "_" + tableInfo.board[boardCount].suit + ".png";
-        }
-        document.getElementById("board"+(boardCount+1)).src = "graphics/" + cardFileName;
-    }
 }
 
 /*

@@ -31,6 +31,10 @@ public class Table {
             Random r = new Random();
             tableId = r.nextInt(1000);
         }
+
+        // TODO: For now, run intialize in the construtor. Later we may support multiple tables and the creation
+        // of new tables.
+        initialize(8, 2);
     }
 
     /**
@@ -68,6 +72,8 @@ public class Table {
      * @return String containing the current state of the table (JSON formatted string)
      */
     public String getTableStateAsJSON(String playerName) {
+
+        System.out.println("Getting table state - playerName = '" + playerName + "'");
 
         TableState tableState = new TableState();
 
@@ -178,13 +184,13 @@ public class Table {
      * @throws Exception - Not enough players sitting at the table to start a new round.  Need minimum of 2.
      */
     public void newRound() throws Exception {
-        roundState = RoundState.PRE_FLOP;
-
         // Can only start a new round if there are at least 2 players at the table
         if (numPlayers <2) {
             Exception e = new Exception("Not enough players to start a new round.  Need a minimum of 2.");
             throw e;
         }
+
+        roundState = RoundState.PRE_FLOP;
 
         // Move the dealer button
         if (dealerPosition==0) {
@@ -217,6 +223,8 @@ public class Table {
         }
 
         // Deal board cards
+        // Burn a card
+        deck.getCard();
         // Flop
         board[0] = deck.getCard();
         board[1] = deck.getCard();
@@ -234,25 +242,41 @@ public class Table {
     }
 
     /**
-     * Move the dealer button to the next player (the next seat with a player in it).
+     * Find the next player from the specified seat position
+     *
+     * @param seatNum - seat number to start looking from
+     *
+     * @returns Seat position of the next player; 0 if next player not found
      */
-    public void incrementDealerPosition() {
+    public int findNextPlayer(int seatNum) {
         // Find the next seat with a player in it.
-        Seat nextSeat = seats[dealerPosition-1].getNext();
+        Seat nextSeat = seats[seatNum-1].getNext();
 
         // Keep going around until either the next player is found,
-        // or we've circled the whole table and are back to the current dealer.
-        while (nextSeat != seats[dealerPosition-1]) {
-            // if nextSeat has a player in it, then this is the new dealer.
+        // or we've circled the whole table and are back to the current position.
+        while (nextSeat != seats[seatNum-1]) {
+            // if nextSeat has a player in it, then this is the next player.
             if (nextSeat.getPlayer() != null) {
-                dealerPosition = nextSeat.getSeatNum();
-                break;
+                return nextSeat.getSeatNum();
             }
             // If not, go to the next seat.
             else {
                 nextSeat = nextSeat.getNext();
             }
         }
+
+        // No next player found. Return 0
+        return 0;
+    }
+
+    /**
+     * Move the dealer button to the next player (the next seat with a player in it).
+     */
+    public void incrementDealerPosition() {
+        dealerPosition = findNextPlayer(dealerPosition);
+        smallBlindPosition = findNextPlayer(dealerPosition);
+        bigBlindPosition = findNextPlayer(smallBlindPosition);
+        currentAction = findNextPlayer(bigBlindPosition);
     }
 
     /**
@@ -302,8 +326,15 @@ public class Table {
                                 seat.getCards()[1].getRank() + "_" + seat.getCards()[1].getSuit());
                     }
                     System.out.println("");
+                    System.out.println("");
                 }
- //           }
+                System.out.println("");
+                System.out.println("");
+                System.out.println(myTable.getTableStateAsJSON("Brandt"));
+                System.out.println("");
+                System.out.println("");
+                System.out.println(myTable.getTableStateAsJSON("Traci"));
+//           }
         }
         catch (Exception e) {
             System.out.println(e);
