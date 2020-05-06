@@ -1,5 +1,9 @@
 var tableInfo = null;
 
+/**********************************************************************************************************
+ * User management functions
+ **********************************************************************************************************/
+
 /*
  * Stores the new player name in a cookie and updates the display in the page.
  */
@@ -28,6 +32,84 @@ function updateDisplayedPlayerName() {
     document.getElementById("PlayerName").innerHTML = "<b>"+playerName+"</b>";
     document.getElementById("PlayerName").style.color = "blue";
 }
+
+/*
+ * Notify the server that the player has requested to take a seat.
+ *
+ * Returns: none
+ */
+function sitDown(seatNum) {
+    // Send request to the server for a player to sit at a seat
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            console.log(this.responseText);
+        }
+    };
+
+    xhttp.open("POST", "http://192.168.86.16:8080/PokerServer/rest/PokerTable/sitDown?playerName=" + getPlayerName() + "&seatNum=" + seatNum, true);
+    xhttp.setRequestHeader("Content-type", "test/plain");
+    xhttp.send();
+}
+
+/*
+ * Notify the server that the player has requested to leave the table.
+ *
+ * Returns: none
+ */
+function leaveTable(seatNum) {
+    // Send request to the server for a player to leave the table
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            console.log(this.responseText);
+        }
+    };
+
+    xhttp.open("POST", "http://192.168.86.16:8080/PokerServer/rest/PokerTable/leaveTable?seatNum=" + seatNum, true);
+    xhttp.setRequestHeader("Content-type", "test/plain");
+    xhttp.send();
+}
+
+/**********************************************************************************************************
+ * Web Socket functions
+ **********************************************************************************************************/
+function WebSocketTest() {
+
+            if ("WebSocket" in window) {
+               alert("WebSocket is supported by your Browser!");
+
+               // Let us open a web socket
+               var ws = new WebSocket("ws://192.168.86.16:8080/PokerServer/PokerWebSocket");
+
+               ws.onopen = function() {
+
+                  // Web Socket is connected, send data using send()
+                  ws.send("Message to send");
+                  alert("Message is sent...");
+               };
+
+               ws.onmessage = function (evt) {
+                  var received_msg = evt.data;
+                  console.log(received_msg);
+                  alert("Message is received...");
+               };
+
+               ws.onclose = function() {
+
+                  // websocket is closed.
+                  alert("Connection is closed...");
+               };
+            } else {
+
+               // The browser doesn't support WebSocket
+               alert("WebSocket NOT supported by your Browser!");
+            }
+         }
+
+/**********************************************************************************************************
+ * Table Status update functions
+ **********************************************************************************************************/
 
 /**
   * Finds the seat number occupied by playerName. Returns 0 if playerName is not found in a seat.
@@ -73,15 +155,10 @@ function getTableInfo() {
  * Returns: none
  */
 function updateTableDisplay() {
-
     updateRoundStateDisplay();
     updatePotDisplay();
     updateBoardDisplay();
     updateSeatDisplay();
-
-    // TODO: REMOVE - TESTING ONLY
-    // TODO: Retrieve the table info from the server and parse it into a javascript object
-    document.getElementById("TestArea").innerHTML = tableStateAsJSON;
 }
 
 /*
@@ -242,54 +319,4 @@ function getSingleSeatDisplay(seatNum) {
     return outputHTML;
 }
 
-/*
- * Notify the server that the player has requested to take a seat.
- *
- * Returns: none
- */
-function sitDown(seatNum) {
-    // Send request to the server for a player to sit at a seat
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-            console.log(this.responseText);
-        }
-    };
 
-    xhttp.open("POST", "http://192.168.86.16:8080/PokerServer/rest/PokerTable/sitDown?playerName=" + getPlayerName() + "&seatNum=" + seatNum, true);
-    xhttp.setRequestHeader("Content-type", "test/plain");
-    xhttp.send();
-}
-
-/*
- * Notify the server that the player has requested to leave the table.
- *
- * Returns: none
- */
-function leaveTable(seatNum) {
-    // Send request to the server for a player to leave the table
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-            console.log(this.responseText);
-        }
-    };
-
-    xhttp.open("POST", "http://192.168.86.16:8080/PokerServer/rest/PokerTable/leaveTable?seatNum=" + seatNum, true);
-    xhttp.setRequestHeader("Content-type", "test/plain");
-    xhttp.send();
-}
-
-function newGame() {
-    // Send request to the server to start a new game
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-            console.log(this.responseText);
-        }
-    };
-
-    xhttp.open("GET", "http://192.168.86.16:8080/PokerServer/rest/PokerTest/newRound", true);
-    xhttp.setRequestHeader("Content-type", "test/plain");
-    xhttp.send();
-}

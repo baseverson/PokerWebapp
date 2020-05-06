@@ -35,6 +35,9 @@ public class Table {
         // TODO: For now, run intialize in the construtor. Later we may support multiple tables and the creation
         // of new tables.
         initialize(8, 2);
+
+        // TODO: test for web socket
+//        webSocket = new TestWebSocket();
     }
 
     /**

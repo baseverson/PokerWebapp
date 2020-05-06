@@ -8,10 +8,12 @@
 
     <script src="javascript/cookies.js"></script>
     <script src="javascript/Poker.js"></script>
+    <script src="javascript/PokerAdmin.js"></script>
 
     <h2>Brandt's Poker Room (Work in progress)</h2>
-    <button type="button" onClick="newGame()">New Game</button></thead>
+    <button type="button" onClick="admin_newGame()">New Game</button></thead>
     <button type="button" onClick="getTableInfo()">Refresh</button></thead>
+    <button type="button" onClick="WebSocketTest()">Web Socket Test</button></thead>
 
     <table>
     <tbody>
@@ -60,8 +62,6 @@
       </tbody>
 
     </table>
-
-    <p id="TestArea"></p>
 
   <script>
     // Updates the player name on page load to whatever is stored in the cookie
