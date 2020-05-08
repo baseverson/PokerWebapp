@@ -21,9 +21,8 @@ public class PokerTableResource {
     @GET
     @Path("getTableState")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getTableState(@Context Providers providers, @QueryParam("playerName") String playerName) {
-        ContextResolver<Table> myTableResolver = providers.getContextResolver(Table.class, MediaType.WILDCARD_TYPE);
-        return myTableResolver.getContext(Table.class).getTableStateAsJSON(playerName);
+    public String getTableState(@QueryParam("playerName") String playerName) {
+        return Table.getTable().getTableStateAsJSON(playerName);
     }
 
     /**
@@ -34,11 +33,9 @@ public class PokerTableResource {
     @POST
     @Path("sitDown")
     @Produces(MediaType.TEXT_PLAIN)
-    public String sitDown(@Context Providers providers,
-                          @QueryParam("playerName") String playerName,
+    public String sitDown(@QueryParam("playerName") String playerName,
                           @QueryParam("seatNum") int seatNum) {
-        ContextResolver<Table> myTableResolver = providers.getContextResolver(Table.class, MediaType.WILDCARD_TYPE);
-        return myTableResolver.getContext(Table.class).sitDown(playerName, seatNum);
+        return Table.getTable().sitDown(playerName, seatNum);
     }
 
     /**
@@ -49,10 +46,8 @@ public class PokerTableResource {
     @POST
     @Path("leaveTable")
     @Produces(MediaType.TEXT_PLAIN)
-    public String leaveTable(@Context Providers providers,
-                          @QueryParam("seatNum") int seatNum) {
-        ContextResolver<Table> myTableResolver = providers.getContextResolver(Table.class, MediaType.WILDCARD_TYPE);
-        return myTableResolver.getContext(Table.class).leaveTable(seatNum);
+    public String leaveTable(@QueryParam("seatNum") int seatNum) {
+        return Table.getTable().leaveTable(seatNum);
     }
 
     public static void main(String[] args) {

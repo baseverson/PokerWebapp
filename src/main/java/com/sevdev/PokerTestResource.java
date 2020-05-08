@@ -16,16 +16,6 @@ import javax.ws.rs.ext.Providers;
 @Path("PokerTest")
 public class PokerTestResource {
 
-    Table table;
-
-    /**
-     * Constructor
-     */
-    public PokerTestResource(@Context Providers providers) {
-        ContextResolver<Table> myTableResolver = providers.getContextResolver(Table.class, MediaType.WILDCARD_TYPE);
-        table =  myTableResolver.getContext(Table.class);
-    }
-
     /**
      * Method handling HTTP GET requests. The returned object will be sent
      * to the client as "text/plain" media type.
@@ -41,18 +31,15 @@ public class PokerTestResource {
     @GET
     @Path("getDeck")
     @Produces(MediaType.APPLICATION_JSON)
-    //public String getDeck(final @Context ContextResolver<Table> myTableResolver) {
-    public String getDeck(@Context Providers providers) {
-        ContextResolver<Table> myTableResolver = providers.getContextResolver(Table.class, MediaType.WILDCARD_TYPE);
-        return myTableResolver.getContext(Table.class).getDeckAsJSON();
+    public String getDeck() {
+        return Table.getTable().getDeckAsJSON();
     }
 
     @POST
     @Path("newDeck")
     @Produces(MediaType.TEXT_PLAIN)
-    public String newDeck(@Context Providers providers) {
-        ContextResolver<Table> myTableResolver = providers.getContextResolver(Table.class, MediaType.WILDCARD_TYPE);
-        myTableResolver.getContext(Table.class).initializeDeck();
+    public String newDeck() {
+        Table.getTable().initializeDeck();
         return "New deck initialized.";
     }
 
@@ -61,7 +48,7 @@ public class PokerTestResource {
     @Produces(MediaType.TEXT_PLAIN)
     public String newRound() {
         try {
-            table.newRound();
+            Table.getTable().newRound();
         }
         catch (Exception e) {
             return e.toString();
@@ -78,9 +65,8 @@ public class PokerTestResource {
     @GET
     @Path("getTotalTableState")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getTableState(@Context Providers providers) {
-        ContextResolver<Table> myTableResolver = providers.getContextResolver(Table.class, MediaType.WILDCARD_TYPE);
-        return myTableResolver.getContext(Table.class).getTableStateAsJSON("ALL");
+    public String getTableState() {
+        return Table.getTable().getTableStateAsJSON("ALL");
     }
 
     /*

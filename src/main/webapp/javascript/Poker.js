@@ -1,17 +1,50 @@
 var tableInfo = null;
+var ws = null;
+var serverAddress = "192.168.86.16:8080/PokerServer";
+var wsAddress = "ws://" + serverAddress + "/PokerWebSocket";
 
 /**********************************************************************************************************
  * User management functions
  **********************************************************************************************************/
 
 /*
- * Stores the new player name in a cookie and updates the display in the page.
+ * Logs in a new user
  */
-function setPlayerName() {
+function login() {
+    // TODO: Implement real user login and authentication
+
+    // For now, just store the player name in a cookie
     var playerName = document.getElementById("newPlayerName").value;
-    if (window.confirm("Change user name to \"" + playerName + "\"?")) {
+    if (window.confirm("Change user to \"" + playerName + "\"?")) {
+
+        // Unregister the session with this username
+        if(getPlayerName() != "") {
+            ws.send("UnregisterSession:" + getPlayerName());
+            console.log("Web Socket connection registration removed for " + getPlayerName());
+        }
+
         document.cookie = "PlayerName=" + playerName;
         updateDisplayedPlayerName(playerName);
+        ws.send("RegisterSession:" + getPlayerName());
+        console.log("Web Socket connection registered to " + getPlayerName());
+    }
+    document.getElementById("newPlayerName").innerHTML="";
+}
+
+/*
+ * Log out the current user
+ */
+function logout() {
+    // TODO: Implement real user logout
+
+    // For now, just set the playerName cookie to empty string
+    if (window.confirm("Log out \"" + getPlayerName() + "\"?")) {
+        // Unregister the session with this username
+        ws.send("UnregisterSession:" + getPlayerName());
+        console.log("Web Socket connection registration removed for " + getPlayerName());
+
+        document.cookie = "PlayerName=";
+        updateDisplayedPlayerName();
     }
 }
 
@@ -39,6 +72,13 @@ function updateDisplayedPlayerName() {
  * Returns: none
  */
 function sitDown(seatNum) {
+    // Only allow a player to sit down if they have a playerName defined
+    if (getPlayerName() == "") {
+        console.log("Cannot sit at table. Player name not defined.")
+        window.alert("You must set your player name before you can sit at the table.");
+        return;
+    }
+
     // Send request to the server for a player to sit at a seat
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
@@ -47,9 +87,12 @@ function sitDown(seatNum) {
         }
     };
 
-    xhttp.open("POST", "http://192.168.86.16:8080/PokerServer/rest/PokerTable/sitDown?playerName=" + getPlayerName() + "&seatNum=" + seatNum, true);
+    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/sitDown?playerName=" + getPlayerName() + "&seatNum=" + seatNum, true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
+
+    // Update the page for the new table state.
+    getTableInfo();
 }
 
 /*
@@ -66,46 +109,72 @@ function leaveTable(seatNum) {
         }
     };
 
-    xhttp.open("POST", "http://192.168.86.16:8080/PokerServer/rest/PokerTable/leaveTable?seatNum=" + seatNum, true);
+    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/leaveTable?seatNum=" + seatNum, true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
+
+    // Update the page for the new table state.
+    getTableInfo();
 }
 
 /**********************************************************************************************************
  * Web Socket functions
  **********************************************************************************************************/
-function WebSocketTest() {
+function establishWebSocketConnection() {
 
-            if ("WebSocket" in window) {
-               alert("WebSocket is supported by your Browser!");
+    //
+    // Establish socket connection (if not already connected).
+    //
 
-               // Let us open a web socket
-               var ws = new WebSocket("ws://192.168.86.16:8080/PokerServer/PokerWebSocket");
+    if (("WebSocket" in window) == false) {
+        alert("WebSocket is NOT supported by your Browser!");
+        return;
+    }
 
-               ws.onopen = function() {
+    if (ws == null) {
+        ws = new WebSocket(wsAddress);
+    }
+    else {
+        console.log("WebSocket already connected.");
+        return;
+    }
 
-                  // Web Socket is connected, send data using send()
-                  ws.send("Message to send");
-                  alert("Message is sent...");
-               };
+    //
+    // onopen function
+    //
+    ws.onopen = function() {
+        console.log("WebSocket opened to " + wsAddress);
+        if (getPlayerName() == "") {
+            // No user name set.  Don't register the connection.
+            console.log("No user logged in.  Connection not registered.")
+        }
+        else {
+            ws.send("RegisterSession:" + getPlayerName());
+            console.log("Web Socket connection registered to " + getPlayerName());
+        }
+    }
 
-               ws.onmessage = function (evt) {
-                  var received_msg = evt.data;
-                  console.log(received_msg);
-                  alert("Message is received...");
-               };
+    //
+    // onmessage function
+    //
+    ws.onmessage = function(evt) {
+        var receivedMsg = evt.data;
+        console.log("Received message: " + receivedMsg);
 
-               ws.onclose = function() {
+        // If this was an update message, get new table state and refresh the page
+        if (receivedMsg = "TableUpdated") {
+            getTableInfo();
+        }
+    }
 
-                  // websocket is closed.
-                  alert("Connection is closed...");
-               };
-            } else {
-
-               // The browser doesn't support WebSocket
-               alert("WebSocket NOT supported by your Browser!");
-            }
-         }
+    //
+    // onclose message
+    //
+    ws.onclose = function() {
+        console.log("Websocket connection to " + wsAddress + " closed.");
+        ws = null;
+    };
+}
 
 /**********************************************************************************************************
  * Table Status update functions
@@ -144,7 +213,7 @@ function getTableInfo() {
             updateTableDisplay();
         }
     };
-    xhttp.open("GET", "http://192.168.86.16:8080/PokerServer/rest/PokerTable/getTableState?playerName=" + playerName, true);
+    xhttp.open("GET", "http://" + serverAddress + "/rest/PokerTable/getTableState?playerName=" + playerName, true);
     xhttp.setRequestHeader("Content-type", "application/json");
     xhttp.send();
 }
@@ -155,6 +224,9 @@ function getTableInfo() {
  * Returns: none
  */
 function updateTableDisplay() {
+    // Update the page with the current table Id
+    document.getElementById("tableId").innerHTML = "Table Id: " + tableInfo.tableId;
+
     updateRoundStateDisplay();
     updatePotDisplay();
     updateBoardDisplay();
@@ -248,7 +320,7 @@ function getSingleSeatDisplay(seatNum) {
     // Else, display the player name and stack size.
     else {
         // Fill in the player info
-        outputHTML += tableInfo.seats[seatNum].player.playerName + "<br>";
+        outputHTML += "<div style='color:blue'><b>" + tableInfo.seats[seatNum].player.playerName + "</b></div><br>";
         outputHTML += "Stack: " + tableInfo.seats[seatNum].player.stackSize + "<br><br>";
 
         // If the current player is sitting at this seat, display the "Leave Table" button.

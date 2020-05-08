@@ -6,6 +6,15 @@ import java.util.Random;
 
 public class Table {
 
+    // Make this a singleton
+    private static Table tableInstance = null;
+    public static Table getTable() {
+        if (tableInstance==null) {
+            tableInstance = new Table();
+        }
+        return tableInstance;
+    }
+
     private Deck deck;
 
     private Integer tableId = 0;
@@ -35,9 +44,6 @@ public class Table {
         // TODO: For now, run intialize in the construtor. Later we may support multiple tables and the creation
         // of new tables.
         initialize(8, 2);
-
-        // TODO: test for web socket
-//        webSocket = new TestWebSocket();
     }
 
     /**
@@ -106,6 +112,30 @@ public class Table {
     }
 
     /**
+     * Send a notification to the specified player that the table state has been updated
+     * and the UI should be refreshed.
+     *
+     * A playerName value of "ALL" will notify all players sitting at the table.
+     *
+     * @param playerName
+     */
+    public void sendTableStateChangeNotification(String playerName) {
+        WebSocketSessionManager sessionManager = WebSocketSessionManager.getInstance();
+
+        if (playerName.equals("ALL_SEATED_PLAYERS")) {
+            // Notify all players
+            for (int i=0; i<seats.length; i++) {
+                if (seats[i].getPlayer() != null) {
+                    sessionManager.notifyPlayer(seats[i].getPlayer().getPlayerName(), "TableUpdated");
+                }
+            }
+        }
+        else {
+            sessionManager.notifyPlayer(playerName, "TableUpdated");
+        }
+    }
+
+    /**
      * Method for indicating a player wishes to sit in a seat.
      *
      * @param playerName - the name of the player wishing to sit in the seat
@@ -124,6 +154,10 @@ public class Table {
             // TODO - fix hard coded stack size
             seats[seatNum-1].setPlayer(new Player(playerName, 1000));
             numPlayers++;
+
+            // Notify all players that the table has been updates
+            sendTableStateChangeNotification("ALL");
+
             return "player \"" + playerName + "\" successfully seated in seat " + seatNum;
         }
     }
@@ -142,6 +176,9 @@ public class Table {
             seats[seatNum-1].setPlayer(null);
             numPlayers--;
             // TODO - other cleanup for player leaving? (e.g. update DB for remaining chips)
+
+            // Notify all players that the table has been updates
+            sendTableStateChangeNotification("ALL");
 
             return "The player has successfully left seat " + seatNum;
         }
@@ -188,6 +225,8 @@ public class Table {
      */
     public void newRound() throws Exception {
         // Can only start a new round if there are at least 2 players at the table
+        System.out.println("New Round requested. Current number of player: " + numPlayers);
+
         if (numPlayers <2) {
             Exception e = new Exception("Not enough players to start a new round.  Need a minimum of 2.");
             throw e;
@@ -242,6 +281,9 @@ public class Table {
         board[4] = deck.getCard();
 
         // TODO: set action position
+
+        // Notify all players that the table has been updates
+        sendTableStateChangeNotification("ALL");
     }
 
     /**

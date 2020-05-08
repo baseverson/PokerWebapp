@@ -11,9 +11,11 @@
     <script src="javascript/PokerAdmin.js"></script>
 
     <h2>Brandt's Poker Room (Work in progress)</h2>
+    <h3 id="tableId"></h3>
     <button type="button" onClick="admin_newGame()">New Game</button></thead>
     <button type="button" onClick="getTableInfo()">Refresh</button></thead>
-    <button type="button" onClick="WebSocketTest()">Web Socket Test</button></thead>
+    <button type="button" onClick="establishWebSocketConnection()">Connect Web Socket</button></thead>
+    <br><br>
 
     <table>
     <tbody>
@@ -22,10 +24,16 @@
         <td>Current Player:</td>
         <td><div id="PlayerName" style="color:blue">None</div></td>
       </tr>
+
+      <!-- Blank row -->
+      <tr/>
+
       <tr>
         <!-- Input field and button to allow the user to enter/change the player name. Relies on a cookie to store the name. -->
+        <td>User name: </td>
         <td><input id="newPlayerName"></td>
-        <td><button type="button" onclick="setPlayerName()">Change User</button></td>
+        <td id="loginButton"><button id="loginButtonLabel" type="button" onclick="login()">Login</button></td>
+        <td id="logoutButton"><button type="button" onclick="logout()">Logout</button></td>
       </tr>
     </tbody>
     </table>
@@ -68,6 +76,8 @@
     updateDisplayedPlayerName();
     // Read the current state of the table and update the page.
     getTableInfo();
+    // Connect the web socket to the server to get alerts and updates.
+    establishWebSocketConnection();
   </script>
 
   </body>
