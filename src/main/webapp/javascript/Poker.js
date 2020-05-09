@@ -1,6 +1,8 @@
 var tableInfo = null;
 var ws = null;
-var serverAddress = "192.168.86.16:8080/PokerServer";
+//var serverAddress = "192.168.86.16:8080/PokerServer";
+//var serverAddress = "76.95.180.166:8076/PokerServer";
+var serverAddress = "sevdev.ddns.net:8076/PokerServer";
 var wsAddress = "ws://" + serverAddress + "/PokerWebSocket";
 
 /**********************************************************************************************************

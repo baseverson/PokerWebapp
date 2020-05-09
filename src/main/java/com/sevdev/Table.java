@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Random;
 
+import static com.sevdev.RoundState.*;
+
 public class Table {
 
     // Make this a singleton
@@ -232,7 +234,7 @@ public class Table {
             throw e;
         }
 
-        roundState = RoundState.PRE_FLOP;
+        roundState = PRE_FLOP;
 
         // Move the dealer button
         if (dealerPosition==0) {
@@ -284,6 +286,33 @@ public class Table {
 
         // Notify all players that the table has been updates
         sendTableStateChangeNotification("ALL");
+    }
+
+    /**
+     * Manually advance the round to the next state.
+     *
+     * @return New round state.
+     */
+    public RoundState advanceRound() {
+       switch (roundState) {
+           case PRE_FLOP:
+               roundState = FLOP;
+               break;
+           case FLOP:
+               roundState = TURN;
+               break;
+           case TURN:
+               roundState = RIVER;
+               break;
+           case RIVER:
+               roundState = SHOWDOWN;
+               break;
+       }
+
+       // Notify all players that the table has been updates
+       sendTableStateChangeNotification("ALL");
+
+       return roundState;
     }
 
     /**
@@ -379,6 +408,12 @@ public class Table {
                 System.out.println("");
                 System.out.println("");
                 System.out.println(myTable.getTableStateAsJSON("Traci"));
+
+                myTable.advanceRound();
+
+                System.out.println("");
+                System.out.println("");
+                System.out.println(myTable.getTableStateAsJSON("Brandt"));
 //           }
         }
         catch (Exception e) {

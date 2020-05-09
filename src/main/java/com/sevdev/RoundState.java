@@ -6,5 +6,6 @@ public enum RoundState {
     FLOP,
     TURN,
     RIVER,
+    SHOWDOWN,
     CLEAN_UP
 }

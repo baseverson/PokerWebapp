@@ -1,5 +1,9 @@
 package com.sevdev;
 
+import com.sevdev.RoundState.*;
+
+import static com.sevdev.RoundState.*;
+
 public class TableState {
 
     private String playerName = new String("");
@@ -69,7 +73,7 @@ public class TableState {
             case FLOP:
                 // Create Flop content w/ rank/suit for first 3 cards, empty suit/rank for the rest.
                 for (int i=0; i<3; i++) {
-                    board[i] = new Card(board[i].getSuit(), board[i].getRank());
+                    board[i] = new Card(newBoard[i].getSuit(), newBoard[i].getRank());
                     board[i].hidden = false;
                 }
                 // Turn
@@ -84,7 +88,7 @@ public class TableState {
             case TURN:
                 // Create Flop and Turn content w/ rank/suit for first 3 cards, empty suit/rank for the rest.
                 for (int i=0; i<4; i++) {
-                    board[i] = new Card(board[i].getSuit(), board[i].getRank());
+                    board[i] = new Card(newBoard[i].getSuit(), newBoard[i].getRank());
                     board[i].hidden = false;
                 }
                 // Flop
@@ -94,10 +98,11 @@ public class TableState {
                 break;
 
             case RIVER:
+            case SHOWDOWN:
             case CLEAN_UP:
                 // Create Flop and Turn content w/ rank/suit for first 3 cards, empty suit/rank for the rest.
                 for (int i=0; i<5; i++) {
-                    board[i] = new Card(board[i].getSuit(), board[i].getRank());
+                    board[i] = new Card(newBoard[i].getSuit(), newBoard[i].getRank());
                     board[i].hidden = false;
                 }
 
@@ -129,7 +134,8 @@ public class TableState {
                 Card[] newCards = newSeats[i].getCards();
                 if (newCards[0]!=null && newCards[1]!= null) {
                     System.out.println(seats[i].getPlayer().getPlayerName() + " ?= " + playerName);
-                    if (seats[i].getPlayer().getPlayerName().equals(playerName)) {
+                    if (seats[i].getPlayer().getPlayerName().equals(playerName) ||
+                        roundState == SHOWDOWN) {
                         System.out.println("Showing cards.");
                         displayCards[0] = new Card(newCards[0].getSuit(), newCards[0].getRank());
                         displayCards[0].hidden = false;
