@@ -190,6 +190,23 @@ public class Table {
     }
 
     /**
+     * Method for indicating a player wishes to fold.
+     *
+     * @param playerName - player who wished to fold
+     *
+     * @return - result of the fold
+     */
+    public String fold(String playerName) {
+        int seatNum = getPlayerSeatNum(playerName);
+        seats[seatNum-1].setInHand(false);
+        seats[seatNum-1].clearCards();
+
+        sendTableStateChangeNotification("ALL");
+
+        return(playerName + " folded.");
+    }
+
+    /**
      * Return the current seat number the player designated by playerName is occupying.
      *
      * @param playerName - Name of the player for which to find the seat number.
@@ -198,7 +215,7 @@ public class Table {
      */
     public Integer getPlayerSeatNum(String playerName) {
         for (int i=0; i<numSeats; i++) {
-            if (seats[i]!=null && seats[i].getPlayer().getPlayerName()==playerName) {
+            if (seats[i]!=null && seats[i].getPlayer().getPlayerName().equals(playerName)) {
                 // Found the player. Return the seat number.
                 return seats[i].getSeatNum();
             }
@@ -218,6 +235,10 @@ public class Table {
         }
         // TODO - clean up the pot
         // TODO - clean up the player cards
+        for (int i=0; i<seats.length; i++) {
+            seats[i].setInHand(false);
+            seats[i].clearCards();
+        }
     }
 
     /**
@@ -259,8 +280,10 @@ public class Table {
                 // If there is a player in this seat, deal a card
                 if (seatPtr.getPlayer() != null) {
                     seatPtr.addCard(i, deck.getCard());
+                    seatPtr.setInHand(true);
                 }
                 seatPtr = seatPtr.getNext();
+                seatPtr.setInHand(true);
             }
             // Don't forget to deal a card to the dealer
             seatPtr.addCard(i, deck.getCard());
@@ -307,6 +330,10 @@ public class Table {
            case RIVER:
                roundState = SHOWDOWN;
                break;
+           case SHOWDOWN:
+              roundState = CLEAN_UP;
+              finishRound();
+              break;
        }
 
        // Notify all players that the table has been updates
@@ -376,14 +403,16 @@ public class Table {
 
         try {
 //            for (int i=0; i<1000000; i++) {
-                myTable.initialize(8, 2);
+            myTable.initialize(8, 2);
 
-                myTable.sitDown("Brandt", 4);
-                myTable.sitDown("Traci", 5);
-                myTable.sitDown("Zoe", 1);
-                myTable.sitDown("Claire", 7);
+            myTable.sitDown("Brandt", 4);
+            myTable.sitDown("Traci", 5);
+            myTable.sitDown("Zoe", 1);
+            myTable.sitDown("Claire", 7);
 
-                myTable.newRound();
+            myTable.newRound();
+
+/*
                 System.out.println("dealerPosition: " + myTable.dealerPosition);
 
                 for (int j=0; j<myTable.numSeats; j++) {
@@ -402,18 +431,17 @@ public class Table {
                     System.out.println("");
                     System.out.println("");
                 }
-                System.out.println("");
-                System.out.println("");
-                System.out.println(myTable.getTableStateAsJSON("Brandt"));
-                System.out.println("");
-                System.out.println("");
-                System.out.println(myTable.getTableStateAsJSON("Traci"));
+ */
 
-                myTable.advanceRound();
+            myTable.advanceRound(); // to FLOP
+            myTable.advanceRound(); // to TURN
+            myTable.advanceRound(); // to RIVER
+            myTable.advanceRound(); // to SHOWDOWN
+            myTable.advanceRound(); // to CLEAN_UP
 
-                System.out.println("");
-                System.out.println("");
-                System.out.println(myTable.getTableStateAsJSON("Brandt"));
+            System.out.println("");
+            System.out.println("");
+            System.out.println(myTable.getTableStateAsJSON("Brandt"));
 //           }
         }
         catch (Exception e) {

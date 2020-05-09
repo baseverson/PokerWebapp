@@ -50,6 +50,18 @@ public class PokerTableResource {
         return Table.getTable().leaveTable(seatNum);
     }
 
+    /**
+     * Method handling HTTP POST requests for a player folding a hand.
+     *
+     * @return String confirming the player left the table and which seat.
+     */
+    @POST
+    @Path("fold")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String fold(@QueryParam("playerName") String playerName) {
+        return Table.getTable().fold(playerName);
+    }
+
     public static void main(String[] args) {
         PokerTableResource poker = new PokerTableResource();
         //System.out.println(poker.getTableId());

@@ -99,7 +99,6 @@ public class TableState {
 
             case RIVER:
             case SHOWDOWN:
-            case CLEAN_UP:
                 // Create Flop and Turn content w/ rank/suit for first 3 cards, empty suit/rank for the rest.
                 for (int i=0; i<5; i++) {
                     board[i] = new Card(newBoard[i].getSuit(), newBoard[i].getRank());
@@ -125,8 +124,12 @@ public class TableState {
 
             // If there is a player in this seat, copy the player info
             if (newSeats[i].getPlayer() != null) {
+                // Copy over the player info - name and stack size
                 seats[i].setPlayer(new Player(newSeats[i].getPlayer().getPlayerName(),
                                               newSeats[i].getPlayer().getStackSize()));
+
+                // Copy over the in hand status
+                seats[i].setInHand(newSeats[i].getInHand());
 
                 // Only show the card info if this is the seat for the current player
                 Card[] displayCards = new Card[2];
@@ -136,14 +139,12 @@ public class TableState {
                     System.out.println(seats[i].getPlayer().getPlayerName() + " ?= " + playerName);
                     if (seats[i].getPlayer().getPlayerName().equals(playerName) ||
                         roundState == SHOWDOWN) {
-                        System.out.println("Showing cards.");
                         displayCards[0] = new Card(newCards[0].getSuit(), newCards[0].getRank());
                         displayCards[0].hidden = false;
                         displayCards[1] = new Card(newCards[1].getSuit(), newCards[1].getRank());
                         displayCards[1].hidden = false;
                     }
                     else {
-                        System.out.println("Hiding cards.");
                         displayCards[0] = new Card("", "");
                         displayCards[0].hidden = true;
                         displayCards[1] = new Card("", "");

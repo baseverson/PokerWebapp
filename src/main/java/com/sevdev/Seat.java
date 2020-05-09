@@ -2,19 +2,23 @@ package com.sevdev;
 
 public class Seat {
     private Integer seatNum;
+    private Boolean inHand;
     private Seat next;
     private Player player;
     private Card[] cards;
 
-    public Integer getSeatNum() { return seatNum; }
-    public Seat getNext() { return next; }
-    public Player getPlayer() { return player; }
+    public Integer getSeatNum() { return this.seatNum; }
+    public Seat getNext() { return this.next; }
+    public Player getPlayer() { return this.player; }
+    public Boolean getInHand() {return this.inHand;}
 
-    public void setPlayer(Player newPlayer) { player = newPlayer; }
-    public void setNext(Seat newNext) { next = newNext; }
+    public void setPlayer(Player newPlayer) { this.player = newPlayer; }
+    public void setNext(Seat newNext) { this.next = newNext; }
+    public void setInHand(Boolean inCurrentHand) { this.inHand = inCurrentHand.booleanValue(); }
 
     public Seat (int newSeatNum) {
         seatNum = newSeatNum;
+        inHand=false;
         cards = new Card[2];
     }
 

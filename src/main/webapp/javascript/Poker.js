@@ -119,6 +119,28 @@ function leaveTable(seatNum) {
     getTableInfo();
 }
 
+/*
+ * Notify the server that the player has requested to fold.
+ *
+ * Returns: none
+ */
+function fold() {
+    // Send request to the server for a player to leave the table
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            console.log(this.responseText);
+        }
+    };
+
+    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/fold?playerName=" + getPlayerName(), true);
+    xhttp.setRequestHeader("Content-type", "test/plain");
+    xhttp.send();
+
+    // Update the page for the new table state.
+//    getTableInfo();
+}
+
 /**********************************************************************************************************
  * Web Socket functions
  **********************************************************************************************************/
@@ -331,6 +353,7 @@ function getSingleSeatDisplay(seatNum) {
         }
     }
 
+    // Close the cell
     outputHTML += "</td>";
 
     //
@@ -360,7 +383,6 @@ function getSingleSeatDisplay(seatNum) {
     //
     // Third cell - Special Player info (Bet, Dealer/SB/BB, All-In
     //
-
     outputHTML += "<td>"
 
     // If this seat is the dealer, display the dealer button.
@@ -379,11 +401,41 @@ function getSingleSeatDisplay(seatNum) {
     }
 
     // Check to see if there is player in this seat.
-    if (tableInfo.seats[seatNum]!=null) {
-        // TODO - If there is a current bet, display it
-        // TODO - If the player is All-In, display it here
+    if (tableInfo.seats[seatNum].player!=null) {
+        // TODO: If there is a current bet, display it
+        // TODO: If the player is All-In, display it here
     }
 
+    // Close the cell
+    outputHTML += "</td>"
+
+    //
+    // Fourth cell - Actions: Fold, Check/Call, Bet/Raise
+    //
+    outputHTML += "<td>"
+
+    // Only display the action buttons if the current action is on this seat.
+    // TODO: For now, display the fold button to all players in the hand
+    //if (tableInfo.seats[seatNum].playerName == getPlayerName && tableInfo.currentAction == seatNum) {
+    if (tableInfo.seats[seatNum].inHand == true && tableInfo.seats[seatNum].player != null) {
+        if (tableInfo.seats[seatNum].player.playerName == getPlayerName()) {
+            // Display fold button
+            outputHTML += "<button type='button' onClick='fold()'>Fold</button>";
+
+            // TODO: Display the Check/Call/All-In Button
+            // If the current bet is zero, display the check button
+            // If the current bet is non-zero, display the call button
+            // if the current bet is greater than the player's current stack, display the All-In button
+            //   and don't display the Bet/Raise/All-In Button below.
+
+            // TODO: Display the Bet/Raise/All-In Button
+            // If the current bet is zero, display the bet button.
+            // if the current bet is greater than zero, display the raise button.
+               // Need to check to make sure the new bet is at least double the current bet
+        }
+    }
+
+    // Close the cell
     outputHTML += "</td>"
 
     //
