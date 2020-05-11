@@ -4,13 +4,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.sevdev</groupId>
-    <artifactId>PokerServer</artifactId>
+    <artifactId>Poker</artifactId>
     <packaging>war</packaging>
     <version>1.0-SNAPSHOT</version>
-    <name>PokerServer</name>
+    <name>Poker</name>
 
     <build>
-        <finalName>PokerServer</finalName>
+        <finalName>Poker</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -30,7 +30,7 @@
                     <url>http://192.168.86.16:8080/manager/text</url>
                     <username>maven-deploy</username>
                     <password>pack4mvn</password>
-                    <path>/PokerServer</path>
+                    <path>/Poker</path>
                 </configuration>
             </plugin>
         </plugins>
