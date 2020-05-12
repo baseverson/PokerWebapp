@@ -4,13 +4,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.sevdev</groupId>
-    <artifactId>Poker</artifactId>
+    <artifactId>${gameName}</artifactId>
     <packaging>war</packaging>
     <version>1.0-SNAPSHOT</version>
-    <name>Poker</name>
+    <name>${gameName}}</name>
 
     <build>
-        <finalName>Poker</finalName>
+        <finalName>${gameName}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -30,7 +30,7 @@
                     <url>http://192.168.86.16:8080/manager/text</url>
                     <username>maven-deploy</username>
                     <password>pack4mvn</password>
-                    <path>/Poker</path>
+                    <path>/Poker_alpha</path>
                 </configuration>
             </plugin>
         </plugins>
@@ -80,5 +80,6 @@
     <properties>
         <jersey.version>2.30.1</jersey.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <gameName>Poker_alpha</gameName>
     </properties>
 </project>

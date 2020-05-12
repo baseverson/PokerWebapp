@@ -24,6 +24,7 @@ public class Table {
     private Integer numPlayers = 0;
     private Integer bigBlind = 0;
     private Integer pot = 0;
+    private Integer currentBet = 0;
     private Integer dealerPosition = 0;
     private Integer smallBlindPosition = 0;
     private Integer bigBlindPosition = 0;
@@ -197,10 +198,19 @@ public class Table {
      * @return - result of the fold
      */
     public String fold(String playerName) {
+        // Get which seat the player is in.
         int seatNum = getPlayerSeatNum(playerName);
+
+        // Mark the seat as not in the current hand.
         seats[seatNum-1].setInHand(false);
+
+        // Clear this seat's cards.
         seats[seatNum-1].clearCards();
 
+        // Player folded. Move on to the next player.
+        advanceAction();
+
+        // Notify all players that the table state has changes and needs to be refreshed.
         sendTableStateChangeNotification("ALL");
 
         return(playerName + " folded.");
@@ -255,7 +265,13 @@ public class Table {
             throw e;
         }
 
+        // Reset the round state
         roundState = PRE_FLOP;
+
+        // Any player sitting at the table is in the next hand
+        for (int i=0; i<seats.length; i++) {
+            seats[i].setInHand(true);
+        }
 
         // Move the dealer button
         if (dealerPosition==0) {
@@ -263,6 +279,8 @@ public class Table {
             Random r = new Random();
             dealerPosition = r.nextInt(numSeats) + 1;
         }
+
+        // Move the buttons (dealer, small blind, and big blind) and set the currentAction position.
         incrementDealerPosition();
 
         // Initialize a new deck
@@ -280,10 +298,8 @@ public class Table {
                 // If there is a player in this seat, deal a card
                 if (seatPtr.getPlayer() != null) {
                     seatPtr.addCard(i, deck.getCard());
-                    seatPtr.setInHand(true);
                 }
                 seatPtr = seatPtr.getNext();
-                seatPtr.setInHand(true);
             }
             // Don't forget to deal a card to the dealer
             seatPtr.addCard(i, deck.getCard());
@@ -305,9 +321,29 @@ public class Table {
         // River
         board[4] = deck.getCard();
 
-        // TODO: set action position
-
         // Notify all players that the table has been updates
+        sendTableStateChangeNotification("ALL");
+    }
+
+    /**
+     * Move the action to the next player still in the hand. Skip the players that are All In.
+     */
+    public void advanceAction() {
+        try {
+            int newAction = findNextPlayer(currentAction);
+
+            // Look for the next player still in the hand and not All In.
+            while (seats[newAction-1].getIsAllIn() && newAction != currentAction) {
+                newAction = findNextPlayer(newAction);
+            }
+            currentAction = newAction;
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.getStackTrace());
+        }
+
+        // Notify all players that the table state has changed and needs to be refreshed.
         sendTableStateChangeNotification("ALL");
     }
 
@@ -317,39 +353,51 @@ public class Table {
      * @return New round state.
      */
     public RoundState advanceRound() {
-       switch (roundState) {
-           case PRE_FLOP:
-               roundState = FLOP;
+        switch (roundState) {
+            case PRE_FLOP:
+                roundState = FLOP;
+                break;
+            case FLOP:
+                roundState = TURN;
+                break;
+            case TURN:
+                roundState = RIVER;
+                break;
+            case RIVER:
+                roundState = SHOWDOWN;
+                break;
+            case SHOWDOWN:
+               roundState = CLEAN_UP;
+               finishRound();
                break;
-           case FLOP:
-               roundState = TURN;
-               break;
-           case TURN:
-               roundState = RIVER;
-               break;
-           case RIVER:
-               roundState = SHOWDOWN;
-               break;
-           case SHOWDOWN:
-              roundState = CLEAN_UP;
-              finishRound();
-              break;
-       }
+        }
 
-       // Notify all players that the table has been updates
-       sendTableStateChangeNotification("ALL");
+        // Set the action to the first player after the dealer
+        try {
+            currentAction = findNextPlayer(dealerPosition);
+        }
+        catch (Exception e) {
+            System.out.println("Unable to set action position. Dealer position passed into findNextPlayer() is invalid.");
+            System.out.println(e.getStackTrace());
+            currentAction = 0;
+        }
 
-       return roundState;
+        // Notify all players that the table has been updates
+        sendTableStateChangeNotification("ALL");
+
+        return roundState;
     }
 
     /**
      * Find the next player from the specified seat position
      *
-     * @param seatNum - seat number to start looking from
-     *
      * @returns Seat position of the next player; 0 if next player not found
      */
-    public int findNextPlayer(int seatNum) {
+    public int findNextPlayer(int seatNum) throws Exception {
+        if (seatNum <=0) {
+            throw new Exception("Invalid seatNum '" + seatNum + "' passed into findNextPlayer()");
+        }
+
         // Find the next seat with a player in it.
         Seat nextSeat = seats[seatNum-1].getNext();
 
@@ -357,7 +405,7 @@ public class Table {
         // or we've circled the whole table and are back to the current position.
         while (nextSeat != seats[seatNum-1]) {
             // if nextSeat has a player in it, then this is the next player.
-            if (nextSeat.getPlayer() != null) {
+            if (nextSeat.getPlayer() != null && nextSeat.getInHand()) {
                 return nextSeat.getSeatNum();
             }
             // If not, go to the next seat.
@@ -374,10 +422,16 @@ public class Table {
      * Move the dealer button to the next player (the next seat with a player in it).
      */
     public void incrementDealerPosition() {
-        dealerPosition = findNextPlayer(dealerPosition);
-        smallBlindPosition = findNextPlayer(dealerPosition);
-        bigBlindPosition = findNextPlayer(smallBlindPosition);
-        currentAction = findNextPlayer(bigBlindPosition);
+        try {
+            dealerPosition = findNextPlayer(dealerPosition);
+            smallBlindPosition = findNextPlayer(dealerPosition);
+            bigBlindPosition = findNextPlayer(smallBlindPosition);
+            currentAction = findNextPlayer(bigBlindPosition);
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.getStackTrace());
+        }
     }
 
     /**

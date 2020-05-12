@@ -27,6 +27,11 @@ public class PokerAdminResource {
         return "New round initialized.";
     }
 
+    /**
+     * Method handling HTTP GET requests to move the game to the next round.
+     *
+     * @return - Status message including what is the new current round
+     */
     @GET
     @Path("advanceRound")
     @Produces(MediaType.TEXT_PLAIN)
@@ -39,6 +44,24 @@ public class PokerAdminResource {
             return e.toString();
         }
         return "Round advanced to " + rs;
+    }
+
+    /**
+     * Method handling HTTP GET requests to move the action to the next player.
+     *
+     * @return - Status message including that the action was advanced.
+     */
+    @GET
+    @Path("advanceAction")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String advanceAction() {
+        try {
+            Table.getTable().advanceAction();
+        }
+        catch (Exception e) {
+            return e.toString();
+        }
+        return "Action advanced.";
     }
 
     /**

@@ -12,6 +12,7 @@ public class TableState {
     private Integer numPlayers = 0;
     private Integer bigBlind = 0;
     private Integer pot = 0;
+    private Integer currentBet = 0;
     private Integer dealerPosition = 0;
     private Integer smallBlindPosition = 0;
     private Integer bigBlindPosition = 0;
@@ -26,6 +27,7 @@ public class TableState {
     public Integer getNumPlayers() { return numPlayers; }
     public Integer getBigBlind() { return bigBlind; }
     public Integer getPot() { return pot; }
+    public Integer getCurrentBet() { return currentBet; }
     public Integer getDealerPosition() { return dealerPosition; }
     public Integer getSmallBlindPosition() { return smallBlindPosition; }
     public Integer getBigBlindPosition() { return bigBlindPosition; }
@@ -40,6 +42,7 @@ public class TableState {
     public void setNumPlayers(Integer newNumPlayers) { numPlayers = newNumPlayers.intValue(); }
     public void setBigBlind(Integer newBigBlind) { bigBlind = newBigBlind.intValue(); }
     public void setPot(Integer newPot) { pot = newPot.intValue(); }
+    public void setCurrentBet(Integer newCurrentBet) { currentBet = newCurrentBet.intValue(); }
     public void setDealerPosition(Integer newDealerPosition) { dealerPosition = newDealerPosition.intValue(); }
     public void setSmallBlindPosition(Integer newSmallBlindPosition) { smallBlindPosition = newSmallBlindPosition.intValue(); }
     public void setBigBlindPosition(Integer newBigBlindPosition) { bigBlindPosition = newBigBlindPosition.intValue(); }
@@ -130,6 +133,9 @@ public class TableState {
 
                 // Copy over the in hand status
                 seats[i].setInHand(newSeats[i].getInHand());
+
+                // Copy over the All In status
+                seats[i].setIsAllIn(newSeats[i].getIsAllIn());
 
                 // Only show the card info if this is the seat for the current player
                 Card[] displayCards = new Card[2];

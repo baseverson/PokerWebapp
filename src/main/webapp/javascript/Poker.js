@@ -2,8 +2,17 @@ var tableInfo = null;
 var ws = null;
 //var serverAddress = "192.168.86.16:8080/PokerServer";
 //var serverAddress = "76.95.180.166:8076/PokerServer";
-var serverAddress = "sevdev.ddns.net:8076/Poker";
+var serverAddress = "sevdev.ddns.net:8076/Poker_alpha";
 var wsAddress = "ws://" + serverAddress + "/PokerWebSocket";
+
+/**********************************************************************************************************
+ * General functions
+ **********************************************************************************************************/
+function log(message) {
+//    if (typeof console == "object") {
+//        console.log(message);
+//    }
+}
 
 /**********************************************************************************************************
  * User management functions
@@ -22,13 +31,13 @@ function login() {
         // Unregister the session with this username
         if(getPlayerName() != "") {
             ws.send("UnregisterSession:" + getPlayerName());
-            console.log("Web Socket connection registration removed for " + getPlayerName());
+            log("Web Socket connection registration removed for " + getPlayerName());
         }
 
         document.cookie = "PlayerName=" + playerName;
         updateDisplayedPlayerName(playerName);
         ws.send("RegisterSession:" + getPlayerName());
-        console.log("Web Socket connection registered to " + getPlayerName());
+        log("Web Socket connection registered to " + getPlayerName());
     }
     document.getElementById("newPlayerName").innerHTML="";
 }
@@ -43,7 +52,7 @@ function logout() {
     if (window.confirm("Log out \"" + getPlayerName() + "\"?")) {
         // Unregister the session with this username
         ws.send("UnregisterSession:" + getPlayerName());
-        console.log("Web Socket connection registration removed for " + getPlayerName());
+        log("Web Socket connection registration removed for " + getPlayerName());
 
         document.cookie = "PlayerName=";
         updateDisplayedPlayerName();
@@ -55,7 +64,7 @@ function logout() {
  */
 function getPlayerName() {
     var playerName = getCookie("PlayerName");
-    console.log("Reading current player name: " + playerName);
+    log("Reading current player name: " + playerName);
     return playerName;
 }
 
@@ -76,7 +85,7 @@ function updateDisplayedPlayerName() {
 function sitDown(seatNum) {
     // Only allow a player to sit down if they have a playerName defined
     if (getPlayerName() == "") {
-        console.log("Cannot sit at table. Player name not defined.")
+        log("Cannot sit at table. Player name not defined.")
         window.alert("You must set your player name before you can sit at the table.");
         return;
     }
@@ -85,7 +94,7 @@ function sitDown(seatNum) {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            console.log(this.responseText);
+            log(this.responseText);
         }
     };
 
@@ -107,7 +116,7 @@ function leaveTable(seatNum) {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            console.log(this.responseText);
+            log(this.responseText);
         }
     };
 
@@ -129,7 +138,7 @@ function fold() {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            console.log(this.responseText);
+            log(this.responseText);
         }
     };
 
@@ -159,7 +168,7 @@ function establishWebSocketConnection() {
         ws = new WebSocket(wsAddress);
     }
     else {
-        console.log("WebSocket already connected.");
+        log("WebSocket already connected.");
         return;
     }
 
@@ -167,14 +176,14 @@ function establishWebSocketConnection() {
     // onopen function
     //
     ws.onopen = function() {
-        console.log("WebSocket opened to " + wsAddress);
+        log("WebSocket opened to " + wsAddress);
         if (getPlayerName() == "") {
             // No user name set.  Don't register the connection.
-            console.log("No user logged in.  Connection not registered.")
+            log("No user logged in.  Connection not registered.")
         }
         else {
             ws.send("RegisterSession:" + getPlayerName());
-            console.log("Web Socket connection registered to " + getPlayerName());
+            log("Web Socket connection registered to " + getPlayerName());
         }
     }
 
@@ -183,7 +192,7 @@ function establishWebSocketConnection() {
     //
     ws.onmessage = function(evt) {
         var receivedMsg = evt.data;
-        console.log("Received message: " + receivedMsg);
+        log("Received message: " + receivedMsg);
 
         // If this was an update message, get new table state and refresh the page
         if (receivedMsg = "TableUpdated") {
@@ -195,7 +204,7 @@ function establishWebSocketConnection() {
     // onclose message
     //
     ws.onclose = function() {
-        console.log("Websocket connection to " + wsAddress + " closed.");
+        log("Websocket connection to " + wsAddress + " closed.");
         ws = null;
     };
 }
@@ -244,8 +253,6 @@ function getTableInfo() {
 
 /*
  * Retrieves the current table info from the server and updates all table info in the page.
- *
- * Returns: none
  */
 function updateTableDisplay() {
     // Update the page with the current table Id
@@ -309,11 +316,9 @@ function updateSeatDisplay() {
     document.getElementById("TableBody").innerHTML = tableDisplay;
 }
 
-/*
- * Updates the table of seats in the page based on the tableInfo passed in.
- *
- * Returns: none
- */
+/**
+  * Produces HTML for a single seat as designated by the seatNum param passed in.
+  */
 function getSingleSeatDisplay(seatNum) {
     var outputHTML = "";
 
@@ -325,10 +330,23 @@ function getSingleSeatDisplay(seatNum) {
         outputHTML += "<tr style='background-color:#FFFFFF'>";
     }
 
+    outputHTML += getSeatPlayerInfo(seatNum);
+    outputHTML += getSeatCards(seatNum);
+    outputHTML += getSeatSpecialInfo(seatNum);
+    outputHTML += getSeatActionInputs(seatNum);
+
     //
-    // First cell - Player info
+    //end of seat row
     //
-    outputHTML += "<td>";
+    outputHTML += "</tr>";
+    return outputHTML;
+}
+
+/**
+  * Produces HTML for the first column (player info) of a single seat as designated by the seatNum param passed in.
+  */
+function getSeatPlayerInfo(seatNum) {
+    var outputHTML = "<td>";
     outputHTML += "Seat #" + (seatNum+1) + "<br><br>";
 
     // If the seat is open, set the player name to 'OPEN' and display a button to allow a user to sit down.
@@ -356,10 +374,14 @@ function getSingleSeatDisplay(seatNum) {
     // Close the cell
     outputHTML += "</td>";
 
-    //
-    // Second cell - Cards
-    //
+    return outputHTML;
+}
 
+/**
+  * Produces HTML for the second column (cards) of a single seat as designated by the seatNum param passed in.
+  */
+function getSeatCards(seatNum) {
+    var outputHTML = "";
     var fileName;
     for (cardCount=0; cardCount<tableInfo.seats[seatNum].cards.length; cardCount++) {
         if (tableInfo.seats[seatNum].player==null) {
@@ -380,10 +402,14 @@ function getSingleSeatDisplay(seatNum) {
         outputHTML += "<td><img src='graphics/" + fileName + "' alt='Card' width='100' height='150'></td>";
     }
 
-    //
-    // Third cell - Special Player info (Bet, Dealer/SB/BB, All-In
-    //
-    outputHTML += "<td>"
+    return outputHTML;
+}
+
+/**
+  * Produces HTML for the third column (special info) of a single seat as designated by the seatNum param passed in.
+  */
+function getSeatSpecialInfo(seatNum) {
+    var outputHTML = "<td>"
 
     // If this seat is the dealer, display the dealer button.
     if (tableInfo.dealerPosition == seatNum+1) {
@@ -409,39 +435,96 @@ function getSingleSeatDisplay(seatNum) {
     // Close the cell
     outputHTML += "</td>"
 
-    //
-    // Fourth cell - Actions: Fold, Check/Call, Bet/Raise
-    //
-    outputHTML += "<td>"
+    return outputHTML;
+}
 
-    // Only display the action buttons if the current action is on this seat.
-    // TODO: For now, display the fold button to all players in the hand
-    //if (tableInfo.seats[seatNum].playerName == getPlayerName && tableInfo.currentAction == seatNum) {
-    if (tableInfo.seats[seatNum].inHand == true && tableInfo.seats[seatNum].player != null) {
-        if (tableInfo.seats[seatNum].player.playerName == getPlayerName()) {
-            // Display fold button
-            outputHTML += "<button type='button' onClick='fold()'>Fold</button>";
+/**
+  * Produces HTML for the fourth column (action inputs) of a single seat as designated by the seatNum param passed in.
+  */
+function getSeatActionInputs(seatNum) {
+    var outputHTML = "<td>";
 
-            // TODO: Display the Check/Call/All-In Button
-            // If the current bet is zero, display the check button
-            // If the current bet is non-zero, display the call button
-            // if the current bet is greater than the player's current stack, display the All-In button
-            //   and don't display the Bet/Raise/All-In Button below.
+    // Check to see if this seat is in the hand and All In. If so, display the All In button and return.
+    // Don't show any other action buttons.
+    if (tableInfo.seats[seatNum].inHand == true && tableInfo.seats[seatNum].isAllIn == true) {
+        // Display the All In button.
+        outputHTML += "<img src='graphics/AllIn.png' alt='All In' width='100' height='150'>";
+    }
+    else {
+        // Check to first make sure there is a player in this seat
+        if (tableInfo.seats[seatNum].player != null) {
 
-            // TODO: Display the Bet/Raise/All-In Button
-            // If the current bet is zero, display the bet button.
-            // if the current bet is greater than zero, display the raise button.
-               // Need to check to make sure the new bet is at least double the current bet
+            // Only display the action buttons if:
+            // 1) this is for the logged in player
+            // 2) the current action is on this seat
+            // 3) the seat/player is not already All-In (the All In check was done previously in this function)
+            if (tableInfo.seats[seatNum].player.playerName == getPlayerName() &&
+                tableInfo.currentAction == seatNum+1) {
+
+                //***********************************************************
+                // Always display fold button
+                //***********************************************************
+                outputHTML += "<button type='button' onClick='fold()'>Fold</button>";
+                outputHTML += "<br><br>";
+
+                //***********************************************************
+                // Current Bet is 0 - Display the Check and Bet buttons
+                //***********************************************************
+
+                // If the current bet is zero, display the check button
+                if (tableInfo.currentBet == 0) {
+                    outputHTML += "<input type='hidden' id='betAmount' value='0'>";
+                    outputHTML += "<button type='button' onClick='bet()'>Check</button>";
+                    outputHTML += "<br><br>";
+
+                    // The min bet is at least the big blind.  If the player's stack size is equal to or less than the
+                    // big blind, display All In button.
+                    if (tableInfo.bigBlind < tableInfo.seats[seatNum].player.stackSize) {
+                        // Display the minimum bet amount (big blind)
+                        outputHTML += "Min Bet: " + tableInfo.bigBlind + "<br>";
+                        // Display the bet input field
+                        outputHTML += "<input id='betAmount' size='5'><br>"
+                        outputHTML += "<button type='button' onClick='betValue()'>Bet</button>";
+                        outputHTML += "<br><br>";
+                    }
+                }
+
+                //***********************************************************
+                // Current Bet is > 0 - Display the Call and Raise buttons
+                //***********************************************************
+
+                // If the current bet is greater than zero, display the Call/All-In button
+                else if (tableInfo.currentBet > 0) {
+                // If the current bet is less than the player's current stack, display the Call button
+                    if (tableInfo.currentBet < tableInfo.seats[seatNum].player.stackSize) {
+                        outputHTML += "<input type='hidden' id='betAmount' value='" + tableInfo.currentBet + "'>";
+                        outputHTML += "<button type='button' onClick='bet(" + tableInfo.currentBet + ")'>Call (" + tableInfo.currentBet + ")</button>";
+                        outputHTML += "<br><br>";
+                    }
+                    // Check to make sure the current stack size is more than double the current bet. If not, all they can do is go All In.
+                    else if ((tableInfo.currentBet * 2) < tableInfo.seats[seatNum].player.stackSize) {
+                        // Display the minimum raise amount (twice the current bet). This will be checked in the bet function.
+                        outputHTML += "Min Raise: " + (tableInfo.currentBet * 2) + "<br>";
+                        // Display the bet input field
+                        outputHTML += "<input id='betAmount' size='5'><br>"
+                        outputHTML += "<button type='button' onClick='bet()'>Raise</button>";
+                        outputHTML += "<br><br>";
+                    }
+                }
+
+                //*************************************************
+                // Always display the All-In Button
+                //*************************************************
+
+                outputHTML += "<input type='hidden' id='betAmount' value='" + tableInfo.seats[seatNum].player.stackSize + "'>";
+                outputHTML += "<button type='button' onClick='bet()'>All-In (" + tableInfo.seats[seatNum].player.stackSize + ")</button>";
+            }
         }
     }
 
     // Close the cell
-    outputHTML += "</td>"
+    outputHTML += "</td>";
 
-    //
-    //end of seat row
-    //
-    outputHTML += "</tr>";
     return outputHTML;
 }
 
