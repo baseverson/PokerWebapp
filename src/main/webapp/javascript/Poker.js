@@ -9,145 +9,9 @@ var wsAddress = "ws://" + serverAddress + "/PokerWebSocket";
  * General functions
  **********************************************************************************************************/
 function log(message) {
-//    if (typeof console == "object") {
-//        console.log(message);
-//    }
-}
-
-/**********************************************************************************************************
- * User management functions
- **********************************************************************************************************/
-
-/*
- * Logs in a new user
- */
-function login() {
-    // TODO: Implement real user login and authentication
-
-    // For now, just store the player name in a cookie
-    var playerName = document.getElementById("newPlayerName").value;
-    if (window.confirm("Change user to \"" + playerName + "\"?")) {
-
-        // Unregister the session with this username
-        if(getPlayerName() != "") {
-            ws.send("UnregisterSession:" + getPlayerName());
-            log("Web Socket connection registration removed for " + getPlayerName());
-        }
-
-        document.cookie = "PlayerName=" + playerName;
-        updateDisplayedPlayerName(playerName);
-        ws.send("RegisterSession:" + getPlayerName());
-        log("Web Socket connection registered to " + getPlayerName());
+    if (typeof console == "object") {
+        console.log(message);
     }
-    document.getElementById("newPlayerName").innerHTML="";
-}
-
-/*
- * Log out the current user
- */
-function logout() {
-    // TODO: Implement real user logout
-
-    // For now, just set the playerName cookie to empty string
-    if (window.confirm("Log out \"" + getPlayerName() + "\"?")) {
-        // Unregister the session with this username
-        ws.send("UnregisterSession:" + getPlayerName());
-        log("Web Socket connection registration removed for " + getPlayerName());
-
-        document.cookie = "PlayerName=";
-        updateDisplayedPlayerName();
-    }
-}
-
-/*
- * Reads the player name from the cookie.
- */
-function getPlayerName() {
-    var playerName = getCookie("PlayerName");
-    log("Reading current player name: " + playerName);
-    return playerName;
-}
-
-/*
- * Updates the display to reflect the player name passed in.
- */
-function updateDisplayedPlayerName() {
-    var playerName = getPlayerName();
-    document.getElementById("PlayerName").innerHTML = "<b>"+playerName+"</b>";
-    document.getElementById("PlayerName").style.color = "blue";
-}
-
-/*
- * Notify the server that the player has requested to take a seat.
- *
- * Returns: none
- */
-function sitDown(seatNum) {
-    // Only allow a player to sit down if they have a playerName defined
-    if (getPlayerName() == "") {
-        log("Cannot sit at table. Player name not defined.")
-        window.alert("You must set your player name before you can sit at the table.");
-        return;
-    }
-
-    // Send request to the server for a player to sit at a seat
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-            log(this.responseText);
-        }
-    };
-
-    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/sitDown?playerName=" + getPlayerName() + "&seatNum=" + seatNum, true);
-    xhttp.setRequestHeader("Content-type", "test/plain");
-    xhttp.send();
-
-    // Update the page for the new table state.
-    getTableInfo();
-}
-
-/*
- * Notify the server that the player has requested to leave the table.
- *
- * Returns: none
- */
-function leaveTable(seatNum) {
-    // Send request to the server for a player to leave the table
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-            log(this.responseText);
-        }
-    };
-
-    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/leaveTable?seatNum=" + seatNum, true);
-    xhttp.setRequestHeader("Content-type", "test/plain");
-    xhttp.send();
-
-    // Update the page for the new table state.
-    getTableInfo();
-}
-
-/*
- * Notify the server that the player has requested to fold.
- *
- * Returns: none
- */
-function fold() {
-    // Send request to the server for a player to leave the table
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-            log(this.responseText);
-        }
-    };
-
-    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/fold?playerName=" + getPlayerName(), true);
-    xhttp.setRequestHeader("Content-type", "test/plain");
-    xhttp.send();
-
-    // Update the page for the new table state.
-//    getTableInfo();
 }
 
 /**********************************************************************************************************
@@ -210,8 +74,243 @@ function establishWebSocketConnection() {
 }
 
 /**********************************************************************************************************
- * Table Status update functions
+ * User management functions
  **********************************************************************************************************/
+
+/*
+ * Logs in a new user
+ */
+function login() {
+    // TODO: Implement real user login and authentication
+
+    // For now, just store the player name in a cookie
+    var playerName = document.getElementById("newPlayerName").value;
+    if (window.confirm("Change user to \"" + playerName + "\"?")) {
+
+        // Unregister the session with this username
+        if(getPlayerName() != "") {
+            ws.send("UnregisterSession:" + getPlayerName());
+            log("Web Socket connection registration removed for " + getPlayerName());
+        }
+
+        document.cookie = "PlayerName=" + playerName;
+        updateDisplayedPlayerName(playerName);
+        ws.send("RegisterSession:" + getPlayerName());
+        log("Web Socket connection registered to " + getPlayerName());
+    }
+    document.getElementById("newPlayerName").innerHTML="";
+}
+
+/*
+ * Log out the current user
+ */
+function logout() {
+    // TODO: Implement real user logout
+
+    // For now, just set the playerName cookie to empty string
+    if (window.confirm("Log out \"" + getPlayerName() + "\"?")) {
+        // Unregister the session with this username
+        ws.send("UnregisterSession:" + getPlayerName());
+        log("Web Socket connection registration removed for " + getPlayerName());
+
+        document.cookie = "PlayerName=";
+        updateDisplayedPlayerName();
+    }
+}
+
+/*
+ * Reads the player name from the cookie.
+ */
+function getPlayerName() {
+    var playerName = getCookie("PlayerName");
+    log("Reading current player name: " + playerName);
+    return playerName;
+}
+
+/**********************************************************************************************************
+ * User action functions
+ **********************************************************************************************************/
+
+/*
+ * Notify the server that the player has requested to take a seat.
+ */
+function sitDown(seatNum) {
+    // Only allow a player to sit down if they have a playerName defined
+    if (getPlayerName() == "") {
+        log("Cannot sit at table. Player name not defined.")
+        window.alert("You must set your player name before you can sit at the table.");
+        return;
+    }
+
+    // Send request to the server for a player to sit at a seat
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            log(this.responseText);
+        }
+    };
+
+    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/sitDown?playerName=" + getPlayerName() + "&seatNum=" + seatNum, true);
+    xhttp.setRequestHeader("Content-type", "test/plain");
+    xhttp.send();
+}
+
+/*
+ * Notify the server that the player has requested to leave the table.
+ */
+function leaveTable(seatNum) {
+    // Send request to the server for a player to leave the table
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            log(this.responseText);
+        }
+    };
+
+    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/leaveTable?seatNum=" + seatNum, true);
+    xhttp.setRequestHeader("Content-type", "test/plain");
+    xhttp.send();
+}
+
+/*
+ * Notify the server that the player has requested to fold.
+ */
+function fold() {
+    // Send request to the server for a player to leave the table
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            log(this.responseText);
+        }
+    };
+
+    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/fold?playerName=" + getPlayerName(), true);
+    xhttp.setRequestHeader("Content-type", "test/plain");
+    xhttp.send();
+}
+
+/**
+  * Place a bet (send the bet to the server).
+  */
+function placeBet(betAmount) {
+    // Send request to the server for a player to leave the table
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            log(this.responseText);
+        }
+    };
+
+    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/bet?playerName=" + getPlayerName() + "&betAmount=" + betAmount, true);
+    xhttp.setRequestHeader("Content-type", "test/plain");
+    xhttp.send();
+}
+
+/*
+ * Notify the server that the player has placed a bet.
+ */
+function bet() {
+    // Get the bet amount entered by the user
+    var betAmount = document.getElementById("betAmount").value;
+    var seatNum = tableInfo.currentAction;
+
+    // If the current bet is 0, bet needs to be at least the big blind.
+    if (tableInfo.currentBet == 0 && betAmount < tableInfo.bigBlind) {
+        window.alert("The best must be at least the size of the big blind.");
+        return;
+    }
+
+    // If the current bet is greater than zero, the bet needs to be at least double the current bet.
+    if (tableInfo.currentBet > 0 && betAmount < (tableInfo.currentBet * 2)) {
+        window.alert("The best must be at least double the current bet.");
+        return;
+    }
+
+    // Check to make sure the bet isn't bigger than the player's stack
+    if (tableInfo.seats[seatNum-1].player.stackSize < betAmount) {
+        if (window.confirm("The bet is larger than your current stack. Go All In?")) {
+            // Player says yes, go All In. Set the betAmount to the player's stack size.
+            betAmount = tableInfo.seats[seatNum-1].player.stackSize;
+        }
+        else {
+            // Player does not want to go all in. Do nothing.
+            return;
+        }
+    }
+
+    // Place the bet
+    placeBet(betAmount);
+}
+
+/**
+  * Player is checking. {
+  */
+function check() {
+    // If the current bet is not 0, player cannot check.
+    if (tableInfo.currentBet != 0) {
+        window.alert("There is a current bet. Checking is not allowed.");
+        return;
+    }
+
+    // Send request to the server for a player to leave the table
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            log(this.responseText);
+        }
+    };
+
+    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/check?playerName=" + getPlayerName(), true);
+    xhttp.setRequestHeader("Content-type", "test/plain");
+    xhttp.send();
+}
+
+/**
+  * Player is calling.
+  */
+function call() {
+    // Send request to the server for a player to leave the table
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            log(this.responseText);
+        }
+    };
+
+    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/call?playerName=" + getPlayerName(), true);
+    xhttp.setRequestHeader("Content-type", "test/plain");
+    xhttp.send();
+}
+
+/**
+  * Player is going all in.
+  */
+function allin() {
+    // Send request to the server for a player to leave the table
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            log(this.responseText);
+        }
+    };
+
+    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/allIn?playerName=" + getPlayerName(), true);
+    xhttp.setRequestHeader("Content-type", "test/plain");
+    xhttp.send();
+}
+
+/**********************************************************************************************************
+ * UI display update functions
+ **********************************************************************************************************/
+
+/*
+ * Updates the display to reflect the player name passed in.
+ */
+function updateDisplayedPlayerName() {
+    var playerName = getPlayerName();
+    document.getElementById("PlayerName").innerHTML = "<b>"+playerName+"</b>";
+    document.getElementById("PlayerName").style.color = "blue";
+}
 
 /**
   * Finds the seat number occupied by playerName. Returns 0 if playerName is not found in a seat.
@@ -230,9 +329,9 @@ function seatNumForPlayer(playerName){
 }
 
 /*
- * Retrieves the current table info from the server and converts it into a javascript object.
- *
- * Returns: Table information (javascript object)
+ * Retrieves the current table info from the server and converts it into a javascript object that is
+ * stored as a global variable. Upon receipt of the table status response, call updateTableDisplay() to
+ * update the UI.
  */
 function getTableInfo() {
     var playerName = getCookie("PlayerName");
@@ -273,8 +372,6 @@ function updateRoundStateDisplay() {
 
 /*
  * Updates the pot in the page based on the tableInfo passed in.
- *
- * Returns: none
  */
 function updatePotDisplay() {
     document.getElementById("pot").innerHTML = tableInfo.pot;
@@ -302,8 +399,6 @@ function updateBoardDisplay() {
 
 /*
  * Updates the table of seats in the page based on the tableInfo passed in.
- *
- * Returns: none
  */
 function updateSeatDisplay() {
     var tableDisplay = "";
@@ -428,8 +523,12 @@ function getSeatSpecialInfo(seatNum) {
 
     // Check to see if there is player in this seat.
     if (tableInfo.seats[seatNum].player!=null) {
-        // TODO: If there is a current bet, display it
-        // TODO: If the player is All-In, display it here
+
+        // If there is a current bet, display it.
+        if (tableInfo.seats[seatNum].playerBet !=0) {
+            outputHTML += "<br>";
+            outputHTML += "Current Bet: " + tableInfo.seats[seatNum].playerBet;
+        }
     }
 
     // Close the cell
@@ -442,13 +541,18 @@ function getSeatSpecialInfo(seatNum) {
   * Produces HTML for the fourth column (action inputs) of a single seat as designated by the seatNum param passed in.
   */
 function getSeatActionInputs(seatNum) {
+    // If the round state is showdown, do nothing.  Players can take no more action.
+    if (tableInfo.roundState == "SHOWDOWN") {
+        return;
+    }
+
     var outputHTML = "<td>";
 
     // Check to see if this seat is in the hand and All In. If so, display the All In button and return.
     // Don't show any other action buttons.
     if (tableInfo.seats[seatNum].inHand == true && tableInfo.seats[seatNum].isAllIn == true) {
         // Display the All In button.
-        outputHTML += "<img src='graphics/AllIn.png' alt='All In' width='100' height='150'>";
+        outputHTML += "<img src='graphics/AllIn.png' alt='Dealer' width='50' height='50'>";
     }
     else {
         // Check to first make sure there is a player in this seat
@@ -473,8 +577,7 @@ function getSeatActionInputs(seatNum) {
 
                 // If the current bet is zero, display the check button
                 if (tableInfo.currentBet == 0) {
-                    outputHTML += "<input type='hidden' id='betAmount' value='0'>";
-                    outputHTML += "<button type='button' onClick='bet()'>Check</button>";
+                    outputHTML += "<button type='button' onClick='check()'>Check</button>";
                     outputHTML += "<br><br>";
 
                     // The min bet is at least the big blind.  If the player's stack size is equal to or less than the
@@ -484,7 +587,7 @@ function getSeatActionInputs(seatNum) {
                         outputHTML += "Min Bet: " + tableInfo.bigBlind + "<br>";
                         // Display the bet input field
                         outputHTML += "<input id='betAmount' size='5'><br>"
-                        outputHTML += "<button type='button' onClick='betValue()'>Bet</button>";
+                        outputHTML += "<button type='button' onClick='bet()'>Bet</button>";
                         outputHTML += "<br><br>";
                     }
                 }
@@ -497,12 +600,13 @@ function getSeatActionInputs(seatNum) {
                 else if (tableInfo.currentBet > 0) {
                 // If the current bet is less than the player's current stack, display the Call button
                     if (tableInfo.currentBet < tableInfo.seats[seatNum].player.stackSize) {
-                        outputHTML += "<input type='hidden' id='betAmount' value='" + tableInfo.currentBet + "'>";
-                        outputHTML += "<button type='button' onClick='bet(" + tableInfo.currentBet + ")'>Call (" + tableInfo.currentBet + ")</button>";
+                        var callAmount = tableInfo.currentBet - tableInfo.seats[seatNum].playerBet;
+                        outputHTML += "<button type='button' onClick='call()'>Call (" + callAmount + ")</button>";
                         outputHTML += "<br><br>";
                     }
+
                     // Check to make sure the current stack size is more than double the current bet. If not, all they can do is go All In.
-                    else if ((tableInfo.currentBet * 2) < tableInfo.seats[seatNum].player.stackSize) {
+                    if ((tableInfo.currentBet * 2) < tableInfo.seats[seatNum].player.stackSize) {
                         // Display the minimum raise amount (twice the current bet). This will be checked in the bet function.
                         outputHTML += "Min Raise: " + (tableInfo.currentBet * 2) + "<br>";
                         // Display the bet input field
@@ -516,8 +620,7 @@ function getSeatActionInputs(seatNum) {
                 // Always display the All-In Button
                 //*************************************************
 
-                outputHTML += "<input type='hidden' id='betAmount' value='" + tableInfo.seats[seatNum].player.stackSize + "'>";
-                outputHTML += "<button type='button' onClick='bet()'>All-In (" + tableInfo.seats[seatNum].player.stackSize + ")</button>";
+                outputHTML += "<button type='button' onClick='allin()'>All-In (" + tableInfo.seats[seatNum].player.stackSize + ")</button>";
             }
         }
     }

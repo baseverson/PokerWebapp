@@ -10,8 +10,9 @@ public class Table {
 
     // Make this a singleton
     private static Table tableInstance = null;
+
     public static Table getTable() {
-        if (tableInstance==null) {
+        if (tableInstance == null) {
             tableInstance = new Table();
         }
         return tableInstance;
@@ -25,6 +26,7 @@ public class Table {
     private Integer bigBlind = 0;
     private Integer pot = 0;
     private Integer currentBet = 0;
+    private Integer currentBetPosition = 0;
     private Integer dealerPosition = 0;
     private Integer smallBlindPosition = 0;
     private Integer bigBlindPosition = 0;
@@ -33,7 +35,9 @@ public class Table {
     private Card board[];
     private Seat seats[];
 
-    public Integer getTableId() { return tableId; }
+    public Integer getTableId() {
+        return tableId;
+    }
 
     /**
      * Constructor
@@ -51,6 +55,7 @@ public class Table {
 
     /**
      * Initialize the table for a fresh start. Clears everything back to a starting state.
+     *
      * @param newNumSeats
      * @param newBigBlind
      */
@@ -66,13 +71,15 @@ public class Table {
         seats = new Seat[newNumSeats];
 
         // initialize the seat array
-        int i=0;
-        if (numSeats >=1) { seats[i] = new Seat(i+1); }
-        for (i=1; i<numSeats; i++) {
-           seats[i] = new Seat(i+1);
-           seats[i-1].setNext(seats[i]);
+        int i = 0;
+        if (numSeats >= 1) {
+            seats[i] = new Seat(i + 1);
         }
-        seats[i-1].setNext(seats[0]);
+        for (i = 1; i < numSeats; i++) {
+            seats[i] = new Seat(i + 1);
+            seats[i - 1].setNext(seats[i]);
+        }
+        seats[i - 1].setNext(seats[0]);
     }
 
     /**
@@ -80,7 +87,6 @@ public class Table {
      * showing him/her only the info they are currently allowed to see.
      *
      * @param playerName - the name of the player requesting the table state
-     *
      * @return String containing the current state of the table (JSON formatted string)
      */
     public String getTableStateAsJSON(String playerName) {
@@ -96,6 +102,8 @@ public class Table {
         tableState.setNumPlayers(numPlayers);
         tableState.setBigBlind(bigBlind);
         tableState.setPot(pot);
+        tableState.setCurrentBet(currentBet);
+        tableState.setCurrentBetPosition(currentBetPosition);
         tableState.setDealerPosition(dealerPosition);
         tableState.setSmallBlindPosition(smallBlindPosition);
         tableState.setBigBlindPosition(bigBlindPosition);
@@ -107,8 +115,7 @@ public class Table {
         try {
             ObjectMapper mapper = new ObjectMapper();
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tableState);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return "Error converting TableState object to JSON.";
         }
@@ -117,7 +124,7 @@ public class Table {
     /**
      * Send a notification to the specified player that the table state has been updated
      * and the UI should be refreshed.
-     *
+     * <p>
      * A playerName value of "ALL" will notify all players sitting at the table.
      *
      * @param playerName
@@ -127,13 +134,12 @@ public class Table {
 
         if (playerName.equals("ALL_SEATED_PLAYERS")) {
             // Notify all players
-            for (int i=0; i<seats.length; i++) {
+            for (int i = 0; i < seats.length; i++) {
                 if (seats[i].getPlayer() != null) {
                     sessionManager.notifyPlayer(seats[i].getPlayer().getPlayerName(), "TableUpdated");
                 }
             }
-        }
-        else {
+        } else {
             sessionManager.notifyPlayer(playerName, "TableUpdated");
         }
     }
@@ -142,20 +148,18 @@ public class Table {
      * Method for indicating a player wishes to sit in a seat.
      *
      * @param playerName - the name of the player wishing to sit in the seat
-     * @param seatNum - the seat the player wishes to sit in
-     *
+     * @param seatNum    - the seat the player wishes to sit in
      * @return String indicating the outcome of the sit-down request
      */
     public String sitDown(String playerName, int seatNum) {
         // check to see if the seat is already taken
-        if (seats[seatNum-1].getPlayer() != null) {
+        if (seats[seatNum - 1].getPlayer() != null) {
             // This seat is already taken.
             return "Failed to seat player \"" + playerName + "\" in seat " + seatNum + ". Seat already taken.";
-        }
-        else {
+        } else {
             // Seat is open
             // TODO - fix hard coded stack size
-            seats[seatNum-1].setPlayer(new Player(playerName, 1000));
+            seats[seatNum - 1].setPlayer(new Player(playerName, 1000));
             numPlayers++;
 
             // Notify all players that the table has been updates
@@ -169,14 +173,13 @@ public class Table {
      * Method for indicating a player wishes to leave the table.
      *
      * @param seatNum - Seat the player wants to leave
-     *
      * @return String indicating the outcome of the request to leave the table
      */
     public String leaveTable(int seatNum) {
 
         // TODO: Check to make sure the player is really in the seat
-        if (seats[seatNum-1].getPlayer() != null) {
-            seats[seatNum-1].setPlayer(null);
+        if (seats[seatNum - 1].getPlayer() != null) {
+            seats[seatNum - 1].setPlayer(null);
             numPlayers--;
             // TODO - other cleanup for player leaving? (e.g. update DB for remaining chips)
 
@@ -184,9 +187,28 @@ public class Table {
             sendTableStateChangeNotification("ALL");
 
             return "The player has successfully left seat " + seatNum;
+        } else {
+            return " No player in seat " + seatNum + ".";
+        }
+    }
+
+    /**
+     * Check if the action is on the current player.
+     *
+     * @param playerName - player checking the action against
+     *
+     * @return True if action is on the specified player, otherwise false
+     */
+    public boolean actionOnPlayer(String playerName) {
+        // Get the seat that the player is in
+        int seatNum = getPlayerSeatNum(playerName);
+
+        // Check to see if that seat is where the current action is
+        if (currentAction == seatNum) {
+            return true;
         }
         else {
-            return " No player in seat " + seatNum + ".";
+            return false;
         }
     }
 
@@ -198,14 +220,19 @@ public class Table {
      * @return - result of the fold
      */
     public String fold(String playerName) {
+        // Verify the action is on the player requesting the action
+        if (!actionOnPlayer(playerName)) {
+            return ("Out of turn move. Action is not currently on " + playerName);
+        }
+
         // Get which seat the player is in.
         int seatNum = getPlayerSeatNum(playerName);
 
         // Mark the seat as not in the current hand.
-        seats[seatNum-1].setInHand(false);
+        seats[seatNum - 1].setInHand(false);
 
         // Clear this seat's cards.
-        seats[seatNum-1].clearCards();
+        seats[seatNum - 1].clearCards();
 
         // Player folded. Move on to the next player.
         advanceAction();
@@ -213,15 +240,188 @@ public class Table {
         // Notify all players that the table state has changes and needs to be refreshed.
         sendTableStateChangeNotification("ALL");
 
-        return(playerName + " folded.");
+        return (playerName + " folded.");
     }
 
     /**
-     * Return the current seat number the player designated by playerName is occupying.
+     * Handles a bet from a player
+     *
+     * @param playerName: Player that made the bet.
+     * @param betAmount: Amount of the bet.
+     *
+     * @return: Status if the bet was accepted.
+     */
+    public String bet(String playerName, Integer betAmount) {
+        // Verify the action is on the player requesting the action
+        if (!actionOnPlayer(playerName)) {
+            return ("Out of turn move. Action is not currently on " + playerName);
+        }
+
+        // First, find the player's seat number (real seat number, not the array index).
+        int seatNum = getPlayerSeatNum(playerName);
+
+        // If the current bet is 0, bet needs to be at least the big blind.
+        if (currentBet == 0 && betAmount < bigBlind) {
+            return ("Bet must at least be greater than or equal to the big blind.");
+        }
+
+        // If the current bet is greater than zero and not equal to the current bet,
+        // the bet is a raise and needs to be at least double the current bet.
+        if (currentBet > 0 &&
+            !betAmount.equals(currentBet) &&
+            betAmount < (currentBet * 2)) {
+            return ("A raise must be at least twice the current bet.");
+        }
+
+        // If the bet is greater than the player's stack, assume the player is going All In.
+        if (currentBet > seats[seatNum - 1].getPlayer().getStackSize()) {
+            betAmount = seats[seatNum - 1].getPlayer().getStackSize();
+        }
+
+        try {
+            // Deduct the chips from the players stack and set the seat's current bet to the new bet.
+            seats[seatNum-1].getPlayer().deductChipsFromStack(betAmount);
+
+            // Update the current bet for the seat
+            seats[seatNum-1].setPlayerBet(betAmount);
+
+            // If the bet is an initial bet or raise, update the currentBet for the table as well as what seat number made the bet.
+            if (betAmount > currentBet) {
+                currentBet = betAmount;
+                currentBetPosition = seatNum;
+            }
+
+            // Check to see if the player is All In. If so, set the seat state as such.
+            if (seats[seatNum-1].getPlayer().getStackSize() == 0) {
+                seats[seatNum-1].setIsAllIn(true);
+            }
+
+            // Advance the action.
+            advanceAction();
+
+            return ("Accepted bet of " + betAmount + "from " + playerName);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.getStackTrace());
+            return ("Invalid bet.");
+        }
+    }
+
+    /**
+     * Handles a player making a call.
+     *
+     * @param playerName - player making the call
+     *
+     * @return String confirming the success of the call
+     */
+    public String call(String playerName) {
+        // Verify the action is on the player requesting the action
+        if (!actionOnPlayer(playerName)) {
+            return ("Out of turn move. Action is not currently on " + playerName);
+        }
+
+        // Find the seat the player is in
+        int seatNum = getPlayerSeatNum(playerName);
+
+        // Figure out the difference between the table's current bet and the player's current bet.  This is the call amount.
+        int callAmount = currentBet - seats[seatNum-1].getPlayerBet();
+
+        // Check first that there are enough chips for a full call. If not, player is going all in.
+        if (callAmount > seats[seatNum-1].getPlayer().getStackSize()) {
+            callAmount = seats[seatNum-1].getPlayer().getStackSize();
+        }
+
+        try {
+            // Deduct the difference between the table's current bet and the player's current bet from the player's stack
+            seats[seatNum-1].getPlayer().deductChipsFromStack(callAmount);
+            seats[seatNum-1].increasePlayerBet(callAmount);
+
+            // Check to see if the player stack is now 0. If so, they are all in.
+            if (seats[seatNum-1].getPlayer().getStackSize() == 0) {
+                seats[seatNum-1].setIsAllIn(true);
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.getStackTrace());
+            return ("Call failed - " + e.getMessage());
+        }
+
+        // Advance the action.
+        advanceAction();
+
+        return ("Call successful.");
+    }
+
+    /**
+     * Handles a check from a player
+     *
+     * @param playerName - player that is checking
+     *
+     * @return String confirming the check was successful
+     */
+    public String check(String playerName) {
+        // Verify the action is on the player requesting the action
+        if (!actionOnPlayer(playerName)) {
+            return ("Out of turn move. Action is not currently on " + playerName);
+        }
+
+        // Check to make sure the current best is 0 and checking is allowed.
+        if (currentBet != 0) {
+            return ("Checking not allowed. Current bet is not 0.");
+        }
+
+        // Advance the action.
+        advanceAction();
+
+        return ("Check successful.");
+    }
+
+    /**
+     * Handles a player request to go All In
+     *
+     * @param playerName - player that wishes to go All In
+     *
+     * @return String confriming the All In was successful
+     */
+    public String allIn(String playerName) {
+        // Verify the action is on the player requesting the action
+        if (!actionOnPlayer(playerName)) {
+            return ("Out of turn move. Action is not currently on " + playerName);
+        }
+
+        // Find the seat the player is in
+        int seatNum = getPlayerSeatNum(playerName);
+
+        // Set the seat's player bet to the player's entire stack
+        seats[seatNum-1].increasePlayerBet(seats[seatNum-1].getPlayer().getStackSize());
+
+        // Set the player's stack size to zero
+        seats[seatNum-1].getPlayer().setStackSize(0);
+
+        // Check to see if this is the new table current bet
+        if (seats[seatNum-1].getPlayerBet() > currentBet) {
+            currentBet = seats[seatNum - 1].getPlayerBet();
+            currentBetPosition = seatNum;
+        }
+
+        // Set the player/seat to All In
+        seats[seatNum-1].setIsAllIn(true);
+
+        // Advance the action.
+        advanceAction();
+
+        return ("All In successful");
+    }
+
+    /**
+     * Return the current seat number (not the array index) that the player designated by playerName is occupying.
      *
      * @param playerName - Name of the player for which to find the seat number.
      *
      * @return The seat number the player is currently occupying. Retunrs 0 if the player is not currently in a seat.
+     *         (Does NOT return the array index into seats.)
      */
     public Integer getPlayerSeatNum(String playerName) {
         for (int i=0; i<numSeats; i++) {
@@ -243,10 +443,18 @@ public class Table {
         for (int i=0; i<5; i++) {
             board[i] = null;
         }
-        // TODO - clean up the pot
-        // TODO - clean up the player cards
+
+        // TODO - award the pot to the winner
+        pot = 0;
+
         for (int i=0; i<seats.length; i++) {
+            // Clear the "in hand" flg for all seats
             seats[i].setInHand(false);
+
+            // Clear the "all in" flg for all seats
+            seats[i].setIsAllIn(false);
+
+            // Clear the cards for all seats
             seats[i].clearCards();
         }
     }
@@ -270,7 +478,10 @@ public class Table {
 
         // Any player sitting at the table is in the next hand
         for (int i=0; i<seats.length; i++) {
-            seats[i].setInHand(true);
+            // Only set the player as in the hand if they has chips
+            if (seats[i].getPlayer() != null && seats[i].getPlayer().getStackSize() > 0) {
+                seats[i].setInHand(true);
+            }
         }
 
         // Move the dealer button
@@ -283,20 +494,24 @@ public class Table {
         // Move the buttons (dealer, small blind, and big blind) and set the currentAction position.
         incrementDealerPosition();
 
+        // Pull small blind
+        seats[smallBlindPosition-1].getPlayer().deductChipsFromStack(bigBlind/2);
+        seats[smallBlindPosition-1].increasePlayerBet(bigBlind/2);
+
+        // Pull big blind
+        seats[bigBlindPosition-1].getPlayer().deductChipsFromStack(bigBlind);
+        seats[bigBlindPosition-1].increasePlayerBet(bigBlind);
+
         // Initialize a new deck
         deck.shuffle();
-        // TODO: remove test output
-        System.out.println(deck.getDeckAsJSON().toString());
 
-        // TODO - pull small/big blinds
-
-        // TODO - deal player cards
         // Deal 2 cards to each player
         for (int i=0; i<2; i++) {
             Seat seatPtr = seats[dealerPosition-1].getNext();
             while (seatPtr.getSeatNum() != dealerPosition) {
-                // If there is a player in this seat, deal a card
-                if (seatPtr.getPlayer() != null) {
+                // If there is a player in this seat and they are in the hand, deal a card
+                if (seatPtr.getPlayer() != null &&
+                    seatPtr.getInHand().equals(true)) {
                     seatPtr.addCard(i, deck.getCard());
                 }
                 seatPtr = seatPtr.getNext();
@@ -332,11 +547,37 @@ public class Table {
         try {
             int newAction = findNextPlayer(currentAction);
 
+            while(true) {
+                // If the next player is the current best position (whether they are All In or not), advance to the next round.
+                if (newAction == currentBetPosition) {
+                    advanceRound();
+                    break;
+                }
+
+                // If the next player is not All In, they are the next action.
+                if (!seats[newAction-1].getIsAllIn()) {
+                    currentAction = newAction;
+                    break;
+                }
+                else {
+                    // Next player is All In, so keep moving the action.
+                    newAction = findNextPlayer(newAction);
+                }
+            }
+
+            /*
             // Look for the next player still in the hand and not All In.
             while (seats[newAction-1].getIsAllIn() && newAction != currentAction) {
                 newAction = findNextPlayer(newAction);
             }
+            //
             currentAction = newAction;
+
+            // If we've looped back to the current best position (the player who raised last), advance to the next round.
+            if (currentAction.intValue() == currentBetPosition.intValue()) {
+                advanceRound();
+            }
+            */
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
@@ -353,6 +594,30 @@ public class Table {
      * @return New round state.
      */
     public RoundState advanceRound() {
+
+        // Gather up all the bets and put them into the pot
+        for (int i=0; i<seats.length; i++) {
+            pot += seats[i].getPlayerBet();
+            seats[i].setPlayerBet(0);
+        }
+
+        // Set the table's current bet back to 0;
+        currentBet = 0;
+
+        try {
+            // Set the action to the first player after the dealer
+            currentAction = findNextPlayer(dealerPosition);
+
+            // Set the current bet position to the first action
+            currentBetPosition = currentAction;
+        }
+        catch (Exception e) {
+            System.out.println("Unable to set action position. Dealer position passed into findNextPlayer() is invalid.");
+            System.out.println(e.getStackTrace());
+            currentAction = 0;
+        }
+
+        // Move to the next round state
         switch (roundState) {
             case PRE_FLOP:
                 roundState = FLOP;
@@ -365,21 +630,13 @@ public class Table {
                 break;
             case RIVER:
                 roundState = SHOWDOWN;
+                currentAction = 0;
                 break;
             case SHOWDOWN:
-               roundState = CLEAN_UP;
-               finishRound();
-               break;
-        }
-
-        // Set the action to the first player after the dealer
-        try {
-            currentAction = findNextPlayer(dealerPosition);
-        }
-        catch (Exception e) {
-            System.out.println("Unable to set action position. Dealer position passed into findNextPlayer() is invalid.");
-            System.out.println(e.getStackTrace());
-            currentAction = 0;
+                roundState = CLEAN_UP;
+                currentAction = 0;
+                finishRound();
+                break;
         }
 
         // Notify all players that the table has been updates
@@ -427,6 +684,7 @@ public class Table {
             smallBlindPosition = findNextPlayer(dealerPosition);
             bigBlindPosition = findNextPlayer(smallBlindPosition);
             currentAction = findNextPlayer(bigBlindPosition);
+            currentBetPosition = currentAction;
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
