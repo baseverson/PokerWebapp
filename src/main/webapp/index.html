@@ -16,19 +16,21 @@
     <h3 id="tableId"></h3>
     <br><br>
 
+    <div id="userFunctions"></div>
+<!--
     <table>
     <tbody>
       <tr>
-        <!-- Display the current player. This will get updated by the "updateDisplayedPlayerName" javascript below. -->
+        <!-- Display the current player. This will get updated by the "updateDisplayedPlayerName" javascript below. - ->
         <td>Current Player:</td>
         <td><div id="PlayerName" style="color:blue">None</div></td>
       </tr>
 
-      <!-- Blank row -->
+      <!-- Blank row - ->
       <tr/>
 
       <tr>
-        <!-- Input field and button to allow the user to enter/change the player name. Relies on a cookie to store the name. -->
+        <!-- Input field and button to allow the user to enter/change the player name. Relies on a cookie to store the name. - ->
         <td>User name: </td>
         <td><input id="newPlayerName"></td>
         <td id="loginButton"><button id="loginButtonLabel" type="button" onclick="login()">Login</button></td>
@@ -36,6 +38,7 @@
       </tr>
     </tbody>
     </table>
+-->
 
     <br><br>
 
@@ -72,7 +75,8 @@
 
   <script>
     // Updates the player name on page load to whatever is stored in the cookie
-    updateDisplayedPlayerName();
+    //updateDisplayedPlayerName();
+    updateUserFunctions();
     // Read the current state of the table and update the page.
     getTableInfo();
     // Connect the web socket to the server to get alerts and updates.

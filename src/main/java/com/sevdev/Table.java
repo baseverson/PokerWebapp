@@ -159,7 +159,7 @@ public class Table {
         } else {
             // Seat is open
             // TODO - fix hard coded stack size
-            seats[seatNum - 1].setPlayer(new Player(playerName, 1000));
+            seats[seatNum - 1].setPlayer(new Player(playerName));
             numPlayers++;
 
             // Notify all players that the table has been updates
@@ -386,33 +386,42 @@ public class Table {
      * @return String confriming the All In was successful
      */
     public String allIn(String playerName) {
-        // Verify the action is on the player requesting the action
-        if (!actionOnPlayer(playerName)) {
-            return ("Out of turn move. Action is not currently on " + playerName);
+        try {
+            // Verify the action is on the player requesting the action
+            if (!actionOnPlayer(playerName)) {
+                return ("Out of turn move. Action is not currently on " + playerName);
+            }
+
+            // Find the seat the player is in
+            int seatNum = getPlayerSeatNum(playerName);
+            int betSize = seats[seatNum-1].getPlayer().getStackSize();
+
+            // Set the seat's player bet to the player's entire stack
+            seats[seatNum-1].increasePlayerBet(betSize);
+
+            // Set the player's stack size to zero
+
+            seats[seatNum-1].getPlayer().deductChipsFromStack(betSize);
+
+            // Check to see if this is the new table current bet
+            if (seats[seatNum-1].getPlayerBet() > currentBet) {
+                currentBet = seats[seatNum - 1].getPlayerBet();
+                currentBetPosition = seatNum;
+            }
+
+            // Set the player/seat to All In
+            seats[seatNum-1].setIsAllIn(true);
+
+            // Advance the action.
+            advanceAction();
+
+            return ("All In successful");
         }
-
-        // Find the seat the player is in
-        int seatNum = getPlayerSeatNum(playerName);
-
-        // Set the seat's player bet to the player's entire stack
-        seats[seatNum-1].increasePlayerBet(seats[seatNum-1].getPlayer().getStackSize());
-
-        // Set the player's stack size to zero
-        seats[seatNum-1].getPlayer().setStackSize(0);
-
-        // Check to see if this is the new table current bet
-        if (seats[seatNum-1].getPlayerBet() > currentBet) {
-            currentBet = seats[seatNum - 1].getPlayerBet();
-            currentBetPosition = seatNum;
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.getStackTrace());
+            return e.getMessage();
         }
-
-        // Set the player/seat to All In
-        seats[seatNum-1].setIsAllIn(true);
-
-        // Advance the action.
-        advanceAction();
-
-        return ("All In successful");
     }
 
     /**
@@ -425,7 +434,9 @@ public class Table {
      */
     public Integer getPlayerSeatNum(String playerName) {
         for (int i=0; i<numSeats; i++) {
-            if (seats[i]!=null && seats[i].getPlayer().getPlayerName().equals(playerName)) {
+            if (seats[i] != null &&
+                seats[i].getPlayer() != null &&
+                seats[i].getPlayer().getPlayerName().equals(playerName)) {
                 // Found the player. Return the seat number.
                 return seats[i].getSeatNum();
             }
@@ -433,6 +444,23 @@ public class Table {
 
         // If we got here, the player was not found in any seat. Return 0;
         return 0;
+    }
+
+    /**
+     * Get the number of players currently in the hand.
+     *
+     * @return number of players currently in the hand (seats that have the "inHand" flag set to true).
+     */
+    public Integer getPlayersInHand() {
+        int playersInHand = 0;
+
+        // Loop through all the seats and add up the players in the hand.
+        for (int i=0; i<numSeats; i++) {
+            if (seats[i] != null && seats[i].getInHand()) {
+                playersInHand++;
+            }
+        }
+        return playersInHand;
     }
 
     /**
@@ -465,24 +493,23 @@ public class Table {
      * @throws Exception - Not enough players sitting at the table to start a new round.  Need minimum of 2.
      */
     public void newRound() throws Exception {
-        // Can only start a new round if there are at least 2 players at the table
-        System.out.println("New Round requested. Current number of player: " + numPlayers);
+        // Can only start a new round if there are at least 2 players at the table in the hand (with chips)
 
-        if (numPlayers <2) {
+        // Any player sitting at the table with chips is in the next hand
+        for (int i=0; i<seats.length; i++) {
+            // Only set the player as in the hand if they have chips
+            if (seats[i].getPlayer() != null && seats[i].getPlayer().getStackSize() > 0) {
+                seats[i].setInHand(true);
+            }
+        }
+
+        if (getPlayersInHand() < 2) {
             Exception e = new Exception("Not enough players to start a new round.  Need a minimum of 2.");
             throw e;
         }
 
         // Reset the round state
         roundState = PRE_FLOP;
-
-        // Any player sitting at the table is in the next hand
-        for (int i=0; i<seats.length; i++) {
-            // Only set the player as in the hand if they has chips
-            if (seats[i].getPlayer() != null && seats[i].getPlayer().getStackSize() > 0) {
-                seats[i].setInHand(true);
-            }
-        }
 
         // Move the dealer button
         if (dealerPosition==0) {
@@ -545,10 +572,15 @@ public class Table {
      */
     public void advanceAction() {
         try {
+            currentAction = findNextPlayerNotAllIn(currentAction);
+            if (currentAction == 0) {
+                advanceRound();
+            }
+/*
             int newAction = findNextPlayer(currentAction);
 
             while(true) {
-                // If the next player is the current best position (whether they are All In or not), advance to the next round.
+                // If the next player is the current action position (whether they are All In or not), advance to the next round.
                 if (newAction == currentBetPosition) {
                     advanceRound();
                     break;
@@ -564,20 +596,7 @@ public class Table {
                     newAction = findNextPlayer(newAction);
                 }
             }
-
-            /*
-            // Look for the next player still in the hand and not All In.
-            while (seats[newAction-1].getIsAllIn() && newAction != currentAction) {
-                newAction = findNextPlayer(newAction);
-            }
-            //
-            currentAction = newAction;
-
-            // If we've looped back to the current best position (the player who raised last), advance to the next round.
-            if (currentAction.intValue() == currentBetPosition.intValue()) {
-                advanceRound();
-            }
-            */
+ */
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
@@ -605,8 +624,17 @@ public class Table {
         currentBet = 0;
 
         try {
-            // Set the action to the first player after the dealer
-            currentAction = findNextPlayer(dealerPosition);
+            // Set the action to the first player after the dealer that is not All In
+            currentAction = findNextPlayerNotAllIn(dealerPosition);
+/*
+            int newAction = currentAction;
+            while(seats[newAction-1].getIsAllIn()) {
+                newAction = findNextPlayer(newAction);
+                if (newAction == currentAction) {
+                    // Didn't find
+                }
+            }
+ */
 
             // Set the current bet position to the first action
             currentBetPosition = currentAction;
@@ -648,10 +676,11 @@ public class Table {
     /**
      * Find the next player from the specified seat position
      *
+     * @param seatNum - starting seat number for player search
      * @returns Seat position of the next player; 0 if next player not found
      */
     public int findNextPlayer(int seatNum) throws Exception {
-        if (seatNum <=0) {
+        if (seatNum <=0 || seatNum > numSeats) {
             throw new Exception("Invalid seatNum '" + seatNum + "' passed into findNextPlayer()");
         }
 
@@ -672,6 +701,36 @@ public class Table {
         }
 
         // No next player found. Return 0
+        return 0;
+    }
+
+    /**
+     * Find the next player from the specified seat position that is not All In
+     *
+     * @param seatNum - starting seat number for player search
+     *
+     * @returns Seat position of the next player; 0 if next player not found
+     *
+     * @throws Exception - thrown from findNextPlayer() if invalid seat number is passed in
+     */
+    public int findNextPlayerNotAllIn(int seatNum) throws Exception {
+
+        // Start out by finding the next player
+        int newSeatNum = seatNum;
+        newSeatNum = findNextPlayer(newSeatNum);
+
+        while (newSeatNum != seatNum) {
+            // If this player is not All In, return the seat number
+            if (!seats[newSeatNum-1].getIsAllIn()) {
+                return newSeatNum;
+            }
+            // Otherwise, move on to the next player
+            else {
+                newSeatNum = findNextPlayer(newSeatNum);
+            }
+        }
+
+        // No additional player that's not All In was found.  Return 0.
         return 0;
     }
 
@@ -724,32 +783,18 @@ public class Table {
 
             myTable.newRound();
 
-/*
-                System.out.println("dealerPosition: " + myTable.dealerPosition);
-
-                for (int j=0; j<myTable.numSeats; j++) {
-                    Seat seat = myTable.seats[j];
-                    Player player = seat.getPlayer();
-                    System.out.println("Seat " + seat.getSeatNum());
-                    if (player == null) {
-                        System.out.println("Seat empty.");
-                    }
-                    else {
-                        System.out.println(player.getPlayerName());
-                        System.out.println(
-                                seat.getCards()[0].getRank() + "_" + seat.getCards()[0].getSuit() + ", " +
-                                seat.getCards()[1].getRank() + "_" + seat.getCards()[1].getSuit());
-                    }
-                    System.out.println("");
-                    System.out.println("");
-                }
- */
-
             myTable.advanceRound(); // to FLOP
+
+            myTable.allIn("Brandt");
+            myTable.allIn("Traci");
+            myTable.allIn("Zoe");
+
             myTable.advanceRound(); // to TURN
             myTable.advanceRound(); // to RIVER
             myTable.advanceRound(); // to SHOWDOWN
             myTable.advanceRound(); // to CLEAN_UP
+
+            myTable.newRound();
 
             System.out.println("");
             System.out.println("");

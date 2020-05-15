@@ -78,14 +78,125 @@ function establishWebSocketConnection() {
  **********************************************************************************************************/
 
 /*
- * Logs in a new user
+ * Display player creation/login/logout functions.
+ */
+function updateUserFunctions() {
+    var outputHTML = "";
+    var playerName = getPlayerName();
+
+    // Check to see if the player name is null.  If not, the user is logged in.
+    if (playerName != "") {
+        // Player logged in. Display the player name.
+        outputHTML += "Player Name: <div style='color:blue'><b>" + playerName + "</b></div><br>";
+        outputHTML += "<button type='button' onclick='logout()'>Logout</button>";
+    }
+    else {
+        // No player logged in. Display the create user and login options.
+        outputHTML += "Create New Player<br>";
+        outputHTML += "<input id='createPlayerName'>   "
+        outputHTML += "<button type='button' onclick='createPlayer()'>Create New Player</button>";
+
+        outputHTML += "<br><br>";
+
+        outputHTML += "Player Login<br>";
+        outputHTML += "<input id='loginPlayerName'>   "
+        outputHTML += "<button type='button' onclick='login()'>Login</button>";
+
+    }
+
+    document.getElementById("userFunctions").innerHTML = outputHTML;
+}
+
+/*
+ * Create a new player
+ */
+function createPlayer() {
+    var playerName = document.getElementById("createPlayerName").value;
+
+    // Check to see if a player name was entered
+    if (playerName == "") {
+        window.alert("Error: Please enter a player name to create.");
+        return;
+    }
+
+    // Check to see if a player is already logged in
+    if (getPlayerName() != "") {
+        window.alert("Error: Player already logged in.");
+        return;
+    }
+
+    // Send create user request to the server
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+
+            // Upon success response from the server, automatically log the user in.
+            // Set the cookie, establish the web socket, and update the UI.
+            log(this.responseText);
+
+            // Set the player name cookie
+            document.cookie = "PlayerName=" + playerName;
+
+            // Register the web socket connection
+            ws.send("RegisterSession:" + getPlayerName());
+            console.log("Web Socket connection registered to " + getPlayerName());
+
+            // update the UI
+            updateUserFunctions();
+        }
+    };
+
+    xhttp.open("POST", "http://" + serverAddress + "/rest/PlayerManagement/createPlayer?playerName=" + playerName, true);
+    xhttp.setRequestHeader("Content-type", "application/json");
+    xhttp.send();
+}
+
+/*
+ * Logs in a player
  */
 function login() {
     // TODO: Implement real user login and authentication
+    var playerName = document.getElementById("loginPlayerName").value;
 
+    // Check to see if a player name was entered
+    if (playerName == "") {
+        window.alert("Error: Please enter a player name to log in.");
+        return;
+    }
+
+    // Check to see if a player is already logged in
+    if (getPlayerName() != "") {
+        window.alert("Error: Player already logged in.");
+        return;
+    }
+
+    // Send login request to the server
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+
+            // Upon success response from the server, set the cookie, establish the web socket, and update the UI.
+            log(this.responseText);
+
+            // Set the player name cookie
+            document.cookie = "PlayerName=" + playerName;
+
+            // Register the web socket connection
+            ws.send("RegisterSession:" + getPlayerName());
+            console.log("Web Socket connection registered to " + getPlayerName());
+
+            // update the UI
+            updateUserFunctions();
+        }
+    };
+
+    xhttp.open("POST", "http://" + serverAddress + "/rest/PlayerManagement/login?playerName=" + playerName, true);
+    xhttp.setRequestHeader("Content-type", "application/json");
+    xhttp.send();
+/*
     // For now, just store the player name in a cookie
-    var playerName = document.getElementById("newPlayerName").value;
-    if (window.confirm("Change user to \"" + playerName + "\"?")) {
+    var playerName = document.getElementById("loginPlayerName").value;
+    if (window.confirm("Login player \"" + playerName + "\"?")) {
 
         // Unregister the session with this username
         if(getPlayerName() != "") {
@@ -94,11 +205,11 @@ function login() {
         }
 
         document.cookie = "PlayerName=" + playerName;
-        updateDisplayedPlayerName(playerName);
         ws.send("RegisterSession:" + getPlayerName());
         log("Web Socket connection registered to " + getPlayerName());
     }
     document.getElementById("newPlayerName").innerHTML="";
+*/
 }
 
 /*
@@ -114,7 +225,8 @@ function logout() {
         log("Web Socket connection registration removed for " + getPlayerName());
 
         document.cookie = "PlayerName=";
-        updateDisplayedPlayerName();
+        //updateDisplayedPlayerName();
+        updateUserFunctions();
     }
 }
 
@@ -150,7 +262,7 @@ function sitDown(seatNum) {
         }
     };
 
-    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/sitDown?playerName=" + getPlayerName() + "&seatNum=" + seatNum, true);
+    xhttp.open("POST", "http://" + serverAddress + "/rest/Table/sitDown?playerName=" + getPlayerName() + "&seatNum=" + seatNum, true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
 }
@@ -167,7 +279,7 @@ function leaveTable(seatNum) {
         }
     };
 
-    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/leaveTable?seatNum=" + seatNum, true);
+    xhttp.open("POST", "http://" + serverAddress + "/rest/Table/leaveTable?seatNum=" + seatNum, true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
 }
@@ -184,7 +296,7 @@ function fold() {
         }
     };
 
-    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/fold?playerName=" + getPlayerName(), true);
+    xhttp.open("POST", "http://" + serverAddress + "/rest/Table/fold?playerName=" + getPlayerName(), true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
 }
@@ -201,7 +313,7 @@ function placeBet(betAmount) {
         }
     };
 
-    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/bet?playerName=" + getPlayerName() + "&betAmount=" + betAmount, true);
+    xhttp.open("POST", "http://" + serverAddress + "/rest/Table/bet?playerName=" + getPlayerName() + "&betAmount=" + betAmount, true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
 }
@@ -260,7 +372,7 @@ function check() {
         }
     };
 
-    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/check?playerName=" + getPlayerName(), true);
+    xhttp.open("POST", "http://" + serverAddress + "/rest/Table/check?playerName=" + getPlayerName(), true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
 }
@@ -277,7 +389,7 @@ function call() {
         }
     };
 
-    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/call?playerName=" + getPlayerName(), true);
+    xhttp.open("POST", "http://" + serverAddress + "/rest/Table/call?playerName=" + getPlayerName(), true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
 }
@@ -294,7 +406,7 @@ function allin() {
         }
     };
 
-    xhttp.open("POST", "http://" + serverAddress + "/rest/PokerTable/allIn?playerName=" + getPlayerName(), true);
+    xhttp.open("POST", "http://" + serverAddress + "/rest/Table/allIn?playerName=" + getPlayerName(), true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
 }
@@ -302,15 +414,6 @@ function allin() {
 /**********************************************************************************************************
  * UI display update functions
  **********************************************************************************************************/
-
-/*
- * Updates the display to reflect the player name passed in.
- */
-function updateDisplayedPlayerName() {
-    var playerName = getPlayerName();
-    document.getElementById("PlayerName").innerHTML = "<b>"+playerName+"</b>";
-    document.getElementById("PlayerName").style.color = "blue";
-}
 
 /**
   * Finds the seat number occupied by playerName. Returns 0 if playerName is not found in a seat.
@@ -345,7 +448,7 @@ function getTableInfo() {
             updateTableDisplay();
         }
     };
-    xhttp.open("GET", "http://" + serverAddress + "/rest/PokerTable/getTableState?playerName=" + playerName, true);
+    xhttp.open("GET", "http://" + serverAddress + "/rest/Table/getTableState?playerName=" + playerName, true);
     xhttp.setRequestHeader("Content-type", "application/json");
     xhttp.send();
 }

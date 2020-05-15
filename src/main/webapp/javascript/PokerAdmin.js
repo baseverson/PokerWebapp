@@ -12,7 +12,7 @@ function admin_newGame() {
         }
     };
 
-    xhttp.open("GET", "http://" + serverAddress + "/rest/PokerAdmin/newRound", true);
+    xhttp.open("GET", "http://" + serverAddress + "/rest/Admin/newRound", true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
 }
@@ -29,7 +29,7 @@ function admin_advanceRound() {
         }
     };
 
-    xhttp.open("GET", "http://" + serverAddress + "/rest/PokerAdmin/advanceRound", true);
+    xhttp.open("GET", "http://" + serverAddress + "/rest/Admin/advanceRound", true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
 }
@@ -46,7 +46,7 @@ function admin_advanceAction() {
         }
     };
 
-    xhttp.open("GET", "http://" + serverAddress + "/rest/PokerAdmin/advanceAction", true);
+    xhttp.open("GET", "http://" + serverAddress + "/rest/Admin/advanceAction", true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
 }

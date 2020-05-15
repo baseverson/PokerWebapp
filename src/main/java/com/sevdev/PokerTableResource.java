@@ -9,7 +9,7 @@ import javax.ws.rs.ext.Providers;
 /**
  * Root resource (exposed at "PokerTable" path)
  */
-@Path("PokerTable")
+@Path("Table")
 public class PokerTableResource {
 
     /**

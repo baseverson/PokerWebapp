@@ -1,9 +1,9 @@
 package com.sevdev;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import static java.lang.Math.abs;
+
+import javax.print.attribute.standard.Media;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 import static com.sevdev.RoundState.*;
@@ -11,7 +11,7 @@ import static com.sevdev.RoundState.*;
 /**
  * Root resource (exposed at "PokerAdmin" path)
  */
-@Path("PokerAdmin")
+@Path("Admin")
 public class PokerAdminResource {
 
     @GET
@@ -30,7 +30,7 @@ public class PokerAdminResource {
     /**
      * Method handling HTTP GET requests to move the game to the next round.
      *
-     * @return - Status message including what is the new current round
+     * @return - Status message indicating what is the new current round
      */
     @GET
     @Path("advanceRound")
@@ -64,6 +64,13 @@ public class PokerAdminResource {
         return "Action advanced.";
     }
 
+    @GET
+    @Path("getPlayerDatabase")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getPlayerDatabase() {
+        return PlayerDatabase.getInstance().getPlayerListAsJSON();
+    }
+
     /**
      * Method handling HTTP GET requests for the complete table state. The returned object will be sent
      * to the client as "application/json" media type.
@@ -76,6 +83,47 @@ public class PokerAdminResource {
     public String getTableState() {
         return Table.getTable().getTableStateAsJSON("none");
     }
+
+    /**
+     * Method handling HTTP POST request to add chips to a player's stack
+     *
+     * @return - Status message indicating that chips were added to the player's stack
+     */
+    @GET
+    @Path("addChipsToPlayer")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String addChipsToPlayer(@QueryParam("playerName") String playerName,
+                                   @QueryParam("chipAmount") Integer chipAmount) {
+        try {
+            // TODO
+            //return Table.getTable().adjustPlayerChips(playerName, abs(chipAmount));
+            return "";
+        }
+        catch (Exception e) {
+            return e.toString();
+        }
+    }
+
+    /**
+     * Method handling HTTP POST request to remove chips to a player's stack
+     *
+     * @return - Status message indicating that chips were removed to the player's stack
+     */
+    @GET
+    @Path("removeChipsFromPlayer")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String removeChipsFromPlayer(@QueryParam("playerName") String playerName,
+                                        @QueryParam("chipAmount") Integer chipAmount) {
+        try {
+            // TODO
+            //return Table.getTable().adjustPlayerChips(playerName, (abs(chipAmount) * -1));
+            return "";
+        }
+        catch (Exception e) {
+            return e.toString();
+        }
+    }
+
 
     /*
     public static void main(String[] args) {
