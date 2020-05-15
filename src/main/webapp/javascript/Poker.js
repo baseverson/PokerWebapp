@@ -1,5 +1,4 @@
 var tableInfo = null;
-var playerInfo = null;
 var ws = null;
 //var serverAddress = "192.168.86.16:8080/PokerServer";
 //var serverAddress = "76.95.180.166:8076/PokerServer";
@@ -65,7 +64,7 @@ function establishWebSocketConnection() {
         }
         // If this was a player update message, get the new player state and refresh the page
         else if (receivesMsg = "PlayerUpdated") {
-            getPlayerInfo();
+            updatePlayerInfo();
         }
     }
 
@@ -83,15 +82,51 @@ function establishWebSocketConnection() {
  **********************************************************************************************************/
 
 /*
- * Get the latest player info from the server and update the UI.
+ * Reads the player name from the cookie.
+ */
+function getPlayerName() {
+    var playerName = getCookie("PlayerName");
+    return playerName;
+}
+
+/*
+ * Set player name cookie
+ */
+function setPlayerName(playerName) {
+    document.cookie = "PlayerName=" + playerName;
+}
+
+/*
+ * Reads the player info from the cookie.
  */
 function getPlayerInfo() {
+    var playerInfoString = getCookie("PlayerInfo");
+    if (playerInfoString != "") {
+        return JSON.parse(playerInfoString);
+    }
+    else {
+        return null;
+    }
+}
+
+/*
+ * Set player info cookie
+ */
+function setPlayerInfo(playerInfo) {
+    document.cookie = "PlayerInfo=" + JSON.stringify(playerInfo);
+}
+
+/*
+ * Get the latest player info from the server and update the UI.
+ */
+function updatePlayerInfo() {
     // Check the playerName cookie to make sure a user is logged in.
     var playerName = getPlayerName();
+    var playerInfo = getPlayerInfo();
     if (playerName == "" || playerInfo == null) {
         // Player is not currently logged in. Delete the player name from the cookie
         // and abort attempt to retrieve player info from the server.
-        document.cookie = "PlayerName=";
+        setPlayerName("");
         updateUserFunctions();
         return;
     }
@@ -102,13 +137,21 @@ function getPlayerInfo() {
         console.log(this.responseText);
         if (this.readyState == 4 && this.status == 200) {
             // Store the received player info in the global playerInfo variable
-            playerInfo = JSON.parse(this.responseText);
+            setPlayerInfo(JSON.parse(this.responseText));
 
             // update the UI
             updateUserFunctions();
         }
         else if (this.readyState == 4 && this.status == 500) {
+            // If the server reports that the user is not found, clear the local cookies.
+            setPlayerName("");
+            setPlayerInfo(null);
+
+            // Alert the user
             window.alert(this.responseText);
+
+            // update the UI
+            updateUserFunctions();
         }
     };
 
@@ -125,7 +168,7 @@ function updateUserFunctions() {
     var playerName = getPlayerName();
 
     // Check to see if the player name is null.  If not, the user is logged in.
-    if (playerName != "" && playerInfo != null) {
+    if (playerName != "" && getPlayerInfo() != null) {
         // Player logged in.
         outputHTML += "<table><tr>";
 
@@ -137,12 +180,12 @@ function updateUserFunctions() {
 
         // Display the total buy in amount
         outputHTML += "<td>";
-        outputHTML += "Total Buy-In amount: " + playerInfo.totalBuyIn;
+        outputHTML += "Total Buy-In amount: " + getPlayerInfo().totalBuyIn;
         outputHTML += "</td>";
 
         // Display the current stack size
         outputHTML += "<td>";
-        outputHTML += "Stack: " + playerInfo.stackSize;
+        outputHTML += "Stack: " + getPlayerInfo().stackSize;
         outputHTML += "</td>";
 
         outputHTML += "</tr></table>";
@@ -197,7 +240,7 @@ function createPlayer() {
             // Upon success response from the server, automatically log the user in.
 
             // Set the player name cookie
-            document.cookie = "PlayerName=" + playerName;
+            setPlayerName(playerName);
 
             // Register the web socket connection
             ws.send("RegisterSession:" + getPlayerName());
@@ -205,7 +248,7 @@ function createPlayer() {
 
             // A successful call will result in the player info returned as a JSON.
             // Store the info in the global playerInfo variable and update the UI.
-            playerInfo = JSON.parse(this.responseText);
+            setPlayerInfo(JSON.parse(this.responseText));
 
             // Update the User interface
             updateUserFunctions();
@@ -245,10 +288,10 @@ function login() {
         console.log(this.responseText);
         if (this.readyState == 4 && this.status == 200) {
             // Set the player name cookie
-            document.cookie = "PlayerName=" + playerName;
+            setPlayerName(playerName);
 
             // Clear the current playerInfo variable
-            playerInfo = null;
+            setPlayerInfo(null);
 
             // Register the web socket connection
             ws.send("RegisterSession:" + getPlayerName());
@@ -256,8 +299,9 @@ function login() {
 
             // A successful call will result in the player info returned as a JSON.
             // Store the info in the global playerInfo variable and update the UI.
-            playerInfo = JSON.parse(this.responseText);
+            setPlayerInfo(JSON.parse(this.responseText));
             updateUserFunctions();
+            getTableState();
         }
         else if (this.readyState == 4 && this.status == 500) {
             window.alert(this.responseText);
@@ -281,9 +325,15 @@ function logout() {
         ws.send("UnregisterSession:" + getPlayerName());
         log("Web Socket connection registration removed for " + getPlayerName());
 
+        // Force fold
+        fold();
+
+        // Force leave table
+        leaveTable(seatNumForPlayer(getPlayerName()));
+
         // Clear the playerName cookie and playerInfo global variable
-        document.cookie = "PlayerName=";
-        playerInfo = null;
+        setPlayerName(playerName);
+        setPlayerInfo(null);
 
         // Update the user display
         updateUserFunctions();
@@ -309,7 +359,7 @@ function buyIn() {
         console.log(this.responseText);
         if (this.readyState == 4 && this.status == 200) {
             // update the UI
-            getPlayerInfo();
+            updatePlayerInfo();
         }
         else if (this.readyState == 4 && this.status == 500) {
             window.alert(this.responseText);
@@ -319,13 +369,6 @@ function buyIn() {
     xhttp.open("POST", "http://" + serverAddress + "/rest/PlayerManagement/buyIn?playerName=" + playerName + "&buyInAmount=" + buyInAmount, true);
     xhttp.setRequestHeader("Content-type", "application/json");
     xhttp.send();
-}
-/*
- * Reads the player name from the cookie.
- */
-function getPlayerName() {
-    var playerName = getCookie("PlayerName");
-    return playerName;
 }
 
 /**********************************************************************************************************
@@ -381,7 +424,10 @@ function fold() {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            log(this.responseText);
+            console.log(this.responseText);
+
+            // Update the player info to refect the new stack size
+            updatePlayerInfo();
         }
     };
 
@@ -398,7 +444,10 @@ function placeBet(betAmount) {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            log(this.responseText);
+            console.log(this.responseText);
+
+            // Update the player info to refect the new stack size
+            updatePlayerInfo();
         }
     };
 
@@ -474,7 +523,10 @@ function call() {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            log(this.responseText);
+            console.log(this.responseText);
+
+            // Update the player info to refect the new stack size
+            updatePlayerInfo();
         }
     };
 
@@ -491,7 +543,10 @@ function allin() {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            log(this.responseText);
+            console.log(this.responseText);
+
+            // Update the player info to refect the new stack size
+            updatePlayerInfo();
         }
     };
 
@@ -594,7 +649,7 @@ function updateBoardDisplay() {
  */
 function updateSeatDisplay() {
     var tableDisplay = "";
-    var numSeats = 8;
+    var numSeats = tableInfo.seats.length;
 
     for (seatCount=0; seatCount<numSeats; seatCount++) {
         tableDisplay += getSingleSeatDisplay(seatCount, tableInfo);
@@ -735,7 +790,7 @@ function getSeatSpecialInfo(seatNum) {
 function getSeatActionInputs(seatNum) {
     // If the round state is showdown, do nothing.  Players can take no more action.
     if (tableInfo.roundState == "SHOWDOWN") {
-        return;
+        return "";
     }
 
     var outputHTML = "<td>";
@@ -793,7 +848,12 @@ function getSeatActionInputs(seatNum) {
                 // If the current bet is less than the player's current stack, display the Call button
                     if (tableInfo.currentBet < tableInfo.seats[seatNum].player.stackSize) {
                         var callAmount = tableInfo.currentBet - tableInfo.seats[seatNum].playerBet;
-                        outputHTML += "<button type='button' onClick='call()'>Call (" + callAmount + ")</button>";
+                        if (callAmount == 0) {
+                            outputHTML += "<button type='button' onClick='call()'>Check</button>";
+                        }
+                        else {
+                            outputHTML += "<button type='button' onClick='call()'>Call (" + callAmount + ")</button>";
+                        }
                         outputHTML += "<br><br>";
                     }
 

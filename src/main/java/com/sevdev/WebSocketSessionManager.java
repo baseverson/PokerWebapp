@@ -84,8 +84,12 @@ public class WebSocketSessionManager {
         }
         else {
             try {
-                hmap.get(playerName).getBasicRemote().sendText(message);
-                System.out.println("Sent message: '" + message + "' to player: '" + playerName + "'");
+                Session session = hmap.get(playerName);
+                // Make sure the playerName has been registered to a session.
+                if (session != null) {
+                    hmap.get(playerName).getBasicRemote().sendText(message);
+                    System.out.println("Sent message: '" + message + "' to player: '" + playerName + "'");
+                }
             }
             catch (IOException e) {
                 e.printStackTrace();

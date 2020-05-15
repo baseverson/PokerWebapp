@@ -11,6 +11,11 @@ public class Table {
     // Make this a singleton
     private static Table tableInstance = null;
 
+    /**
+     * Singleton getInstance
+     *
+     * @return The single instance of Table
+     */
     public static Table getInstance() {
         if (tableInstance == null) {
             tableInstance = new Table();
@@ -50,7 +55,7 @@ public class Table {
 
         // TODO: For now, run intialize in the construtor. Later we may support multiple tables and the creation
         // of new tables.
-        initialize(8, 2);
+        initialize(12, 2);
     }
 
     /**
@@ -244,8 +249,16 @@ public class Table {
         // Clear this seat's cards.
         seats[seatNum - 1].clearCards();
 
-        // Player folded. Move on to the next player.
-        advanceAction();
+        // If all players but one have folded, end the game.  The single remaining player is the winner.
+        if (getPlayersInHand() == 1) {
+            roundState = CLEAN_UP;
+            currentAction = 0;
+            finishRound();
+        }
+        else {
+            // Move on to the next player.
+            advanceAction();
+        }
 
         // Notify all players that the table state has changes and needs to be refreshed.
         sendTableStateChangeNotification("ALL");
@@ -539,6 +552,15 @@ public class Table {
         seats[bigBlindPosition-1].getPlayer().deductChipsFromStack(bigBlind);
         seats[bigBlindPosition-1].increasePlayerBet(bigBlind);
 
+        // Set the currnetBet to the big blind
+        currentBet = bigBlind;
+
+        // Set the current action to the player to the left of the big blind
+        currentAction = findNextPlayer(bigBlindPosition);
+
+        // Set the current bet position to the big blind position
+        currentBetPosition = bigBlindPosition;
+
         // Initialize a new deck
         deck.shuffle();
 
@@ -582,31 +604,29 @@ public class Table {
      */
     public void advanceAction() {
         try {
-            currentAction = findNextPlayerNotAllIn(currentAction);
-            if (currentAction == 0) {
-                advanceRound();
-            }
-/*
+            // TODO: handle the action rotation accounting for all in players
+            //int newAction = findNextPlayerNotAllIn(currentAction);
             int newAction = findNextPlayer(currentAction);
 
-            while(true) {
-                // If the next player is the current action position (whether they are All In or not), advance to the next round.
-                if (newAction == currentBetPosition) {
-                    advanceRound();
-                    break;
-                }
+            // No players that are not all in were found, so move on to the next round.
+            if (newAction == 0) {
+                advanceRound();
+            }
 
-                // If the next player is not All In, they are the next action.
-                if (!seats[newAction-1].getIsAllIn()) {
+            if (newAction == currentBetPosition) {
+                // Special case for pre-flop, if the big blind bet was called all the way around, then the
+                // big blind position has an option to raise.
+                if (roundState == PRE_FLOP && newAction == bigBlindPosition && currentBet == bigBlind) {
+                    currentBetPosition = findNextPlayerNotAllIn(currentBetPosition);
                     currentAction = newAction;
-                    break;
                 }
                 else {
-                    // Next player is All In, so keep moving the action.
-                    newAction = findNextPlayer(newAction);
+                    advanceRound();
                 }
             }
- */
+            else {
+                currentAction = newAction;
+            }
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
@@ -635,16 +655,9 @@ public class Table {
 
         try {
             // Set the action to the first player after the dealer that is not All In
-            currentAction = findNextPlayerNotAllIn(dealerPosition);
-/*
-            int newAction = currentAction;
-            while(seats[newAction-1].getIsAllIn()) {
-                newAction = findNextPlayer(newAction);
-                if (newAction == currentAction) {
-                    // Didn't find
-                }
-            }
- */
+            // TODO: Don't think I need to worry about all in players here
+            //currentAction = findNextPlayerNotAllIn(dealerPosition);
+            currentAction = findNextPlayer(dealerPosition);
 
             // Set the current bet position to the first action
             currentBetPosition = currentAction;
@@ -669,6 +682,7 @@ public class Table {
             case RIVER:
                 roundState = SHOWDOWN;
                 currentAction = 0;
+                // TODO: Declare and display winner
                 break;
             case SHOWDOWN:
                 roundState = CLEAN_UP;
@@ -752,8 +766,6 @@ public class Table {
             dealerPosition = findNextPlayer(dealerPosition);
             smallBlindPosition = findNextPlayer(dealerPosition);
             bigBlindPosition = findNextPlayer(smallBlindPosition);
-            currentAction = findNextPlayer(bigBlindPosition);
-            currentBetPosition = currentAction;
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
@@ -780,24 +792,29 @@ public class Table {
     }
 
     public static void main(String[] args) {
-        Table myTable = new Table();
+        Table myTable = Table.getInstance();
 
         try {
-//            for (int i=0; i<1000000; i++) {
-            myTable.initialize(8, 2);
+            //myTable.initialize(8, 2);
 
-            myTable.sitDown("Brandt", 4);
-            myTable.sitDown("Traci", 5);
-            myTable.sitDown("Zoe", 1);
-            myTable.sitDown("Claire", 7);
+            PlayerDatabase.getInstance().createPlayer("Brandt");
+            PlayerDatabase.getInstance().getPlayer("Brandt").buyIn(160);
+            PlayerDatabase.getInstance().createPlayer("Traci");
+            PlayerDatabase.getInstance().getPlayer("Traci").buyIn(160);
+            PlayerDatabase.getInstance().createPlayer("Zoe");
+            PlayerDatabase.getInstance().getPlayer("Zoe").buyIn(160);
+
+            myTable.sitDown("Brandt", 1);
+            myTable.sitDown("Traci", 2);
+            myTable.sitDown("Zoe", 3);
+
+            myTable.dealerPosition = 3;
 
             myTable.newRound();
 
-            myTable.advanceRound(); // to FLOP
-
-            myTable.allIn("Brandt");
-            myTable.allIn("Traci");
-            myTable.allIn("Zoe");
+            myTable.call("Brandt");
+            myTable.call("Traci");
+            myTable.call("Zoe");
 
             myTable.advanceRound(); // to TURN
             myTable.advanceRound(); // to RIVER
@@ -809,7 +826,6 @@ public class Table {
             System.out.println("");
             System.out.println("");
             System.out.println(myTable.getTableStateAsJSON("Brandt"));
-//           }
         }
         catch (Exception e) {
             System.out.println(e);

@@ -18,13 +18,21 @@ public class PokerPlayerManagementResource {
 
     @GET
     @Path("playerInfo")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getPlayerInfo(@QueryParam("playerName") String playerName) {
+    public Response getPlayerInfo(@QueryParam("playerName") String playerName) {
         try {
-            return PlayerDatabase.getInstance().getPlayerAsJSON(playerName);
+            String playerJSON = PlayerDatabase.getInstance().getPlayerAsJSON(playerName);
+            return Response
+                    .status(Response.Status.OK)
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(playerJSON)
+                    .build();
         }
         catch (Exception e) {
-            return e.toString();
+            return Response
+                    .status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(e.getMessage())
+                    .build();
         }
     }
 
