@@ -11,7 +11,7 @@ public class Table {
     // Make this a singleton
     private static Table tableInstance = null;
 
-    public static Table getTable() {
+    public static Table getInstance() {
         if (tableInstance == null) {
             tableInstance = new Table();
         }
@@ -149,17 +149,27 @@ public class Table {
      *
      * @param playerName - the name of the player wishing to sit in the seat
      * @param seatNum    - the seat the player wishes to sit in
+     *
      * @return String indicating the outcome of the sit-down request
+     *
+     * @throws Exception - when a player is already in seat or the or when the specified player does not exist
      */
-    public String sitDown(String playerName, int seatNum) {
+    public String sitDown(String playerName, int seatNum) throws Exception{
+        Player player = PlayerDatabase.getInstance().getPlayer(playerName);
+
+        // Check to see if the player was found in the database
+        if (player == null) {
+            // Player does not exist
+            throw new Exception("Player '" + playerName + "' does not exist.");
+        }
         // check to see if the seat is already taken
-        if (seats[seatNum - 1].getPlayer() != null) {
+        else if (seats[seatNum - 1].getPlayer() != null) {
             // This seat is already taken.
-            return "Failed to seat player \"" + playerName + "\" in seat " + seatNum + ". Seat already taken.";
+            throw new Exception("Failed to seat player \"" + playerName + "\" in seat " + seatNum + ". Seat already taken.");
         } else {
             // Seat is open
             // TODO - fix hard coded stack size
-            seats[seatNum - 1].setPlayer(new Player(playerName));
+            seats[seatNum - 1].setPlayer(player);
             numPlayers++;
 
             // Notify all players that the table has been updates

@@ -2,7 +2,6 @@ package com.sevdev;
 
 import static java.lang.Math.abs;
 
-import javax.print.attribute.standard.Media;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
@@ -19,7 +18,7 @@ public class PokerAdminResource {
     @Produces(MediaType.TEXT_PLAIN)
     public String newRound() {
         try {
-            Table.getTable().newRound();
+            Table.getInstance().newRound();
         }
         catch (Exception e) {
             return e.toString();
@@ -38,7 +37,7 @@ public class PokerAdminResource {
     public String advanceRound() {
         RoundState rs = UNDEFINED;
         try {
-            Table.getTable().advanceRound();
+            Table.getInstance().advanceRound();
         }
         catch (Exception e) {
             return e.toString();
@@ -56,7 +55,7 @@ public class PokerAdminResource {
     @Produces(MediaType.TEXT_PLAIN)
     public String advanceAction() {
         try {
-            Table.getTable().advanceAction();
+            Table.getInstance().advanceAction();
         }
         catch (Exception e) {
             return e.toString();
@@ -81,7 +80,7 @@ public class PokerAdminResource {
     @Path("getTotalTableState")
     @Produces(MediaType.APPLICATION_JSON)
     public String getTableState() {
-        return Table.getTable().getTableStateAsJSON("none");
+        return Table.getInstance().getTableStateAsJSON("none");
     }
 
     /**

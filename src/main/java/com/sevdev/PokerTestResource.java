@@ -1,14 +1,10 @@
 package com.sevdev;
 
-import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Providers;
 
 /**
  * Root resource (exposed at "PokerTest" path)
@@ -32,14 +28,14 @@ public class PokerTestResource {
     @Path("getDeck")
     @Produces(MediaType.APPLICATION_JSON)
     public String getDeck() {
-        return Table.getTable().getDeckAsJSON();
+        return Table.getInstance().getDeckAsJSON();
     }
 
     @POST
     @Path("newDeck")
     @Produces(MediaType.TEXT_PLAIN)
     public String newDeck() {
-        Table.getTable().initializeDeck();
+        Table.getInstance().initializeDeck();
         return "New deck initialized.";
     }
 
@@ -48,7 +44,7 @@ public class PokerTestResource {
     @Produces(MediaType.TEXT_PLAIN)
     public String newRound() {
         try {
-            Table.getTable().newRound();
+            Table.getInstance().newRound();
         }
         catch (Exception e) {
             return e.toString();
@@ -66,7 +62,7 @@ public class PokerTestResource {
     @Path("getTotalTableState")
     @Produces(MediaType.APPLICATION_JSON)
     public String getTableState() {
-        return Table.getTable().getTableStateAsJSON("ALL");
+        return Table.getInstance().getTableStateAsJSON("ALL");
     }
 
     /*

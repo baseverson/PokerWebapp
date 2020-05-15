@@ -1,10 +1,8 @@
 package com.sevdev;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Providers;
+import javax.ws.rs.core.Response;
 
 /**
  * Root resource (exposed at "PokerTable" path)
@@ -24,7 +22,7 @@ public class PokerTableResource {
     @Path("getTableState")
     @Produces(MediaType.APPLICATION_JSON)
     public String getTableState(@QueryParam("playerName") String playerName) {
-        return Table.getTable().getTableStateAsJSON(playerName);
+        return Table.getInstance().getTableStateAsJSON(playerName);
     }
 
     /**
@@ -38,9 +36,25 @@ public class PokerTableResource {
     @POST
     @Path("sitDown")
     @Produces(MediaType.TEXT_PLAIN)
-    public String sitDown(@QueryParam("playerName") String playerName,
-                          @QueryParam("seatNum") int seatNum) {
-        return Table.getTable().sitDown(playerName, seatNum);
+    public Response sitDown(@QueryParam("playerName") String playerName,
+                            @QueryParam("seatNum") int seatNum) {
+        String result = null;
+        try {
+            result = Table.getInstance().sitDown(playerName, seatNum);
+
+            return Response
+                    .status(Response.Status.OK)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(result)
+                    .build();
+        }
+        catch (Exception e) {
+            return Response
+                    .status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(e.getMessage())
+                    .build();
+        }
     }
 
     /**
@@ -54,7 +68,7 @@ public class PokerTableResource {
     @Path("leaveTable")
     @Produces(MediaType.TEXT_PLAIN)
     public String leaveTable(@QueryParam("seatNum") int seatNum) {
-        return Table.getTable().leaveTable(seatNum);
+        return Table.getInstance().leaveTable(seatNum);
     }
 
     /**
@@ -68,7 +82,7 @@ public class PokerTableResource {
     @Path("fold")
     @Produces(MediaType.TEXT_PLAIN)
     public String fold(@QueryParam("playerName") String playerName) {
-        return Table.getTable().fold(playerName);
+        return Table.getInstance().fold(playerName);
     }
 
     /**
@@ -82,7 +96,7 @@ public class PokerTableResource {
     @Path("check")
     @Produces(MediaType.TEXT_PLAIN)
     public String bet(@QueryParam("playerName") String playerName) {
-        return Table.getTable().check(playerName);
+        return Table.getInstance().check(playerName);
     }
 
     /**
@@ -98,7 +112,7 @@ public class PokerTableResource {
     @Produces(MediaType.TEXT_PLAIN)
     public String bet(@QueryParam("playerName") String playerName,
                       @QueryParam("betAmount") Integer betAmount) {
-        return Table.getTable().bet(playerName, betAmount);
+        return Table.getInstance().bet(playerName, betAmount);
     }
 
     /**
@@ -112,7 +126,7 @@ public class PokerTableResource {
     @Path("call")
     @Produces(MediaType.TEXT_PLAIN)
     public String call(@QueryParam("playerName") String playerName) {
-        return Table.getTable().call(playerName);
+        return Table.getInstance().call(playerName);
     }
 
     /**
@@ -126,7 +140,7 @@ public class PokerTableResource {
     @Path("allIn")
     @Produces(MediaType.TEXT_PLAIN)
     public String allIn(@QueryParam("playerName") String playerName) {
-        return Table.getTable().allIn(playerName);
+        return Table.getInstance().allIn(playerName);
     }
 
     /**

@@ -16,7 +16,7 @@ import static java.lang.Math.abs;
 @Path("PlayerManagement")
 public class PokerPlayerManagementResource {
 
-    @POST
+    @GET
     @Path("playerInfo")
     @Produces(MediaType.APPLICATION_JSON)
     public String getPlayerInfo(@QueryParam("playerName") String playerName) {
@@ -50,6 +50,7 @@ public class PokerPlayerManagementResource {
             System.out.println(e.getMessage());
             return Response
                     .status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .type(MediaType.TEXT_PLAIN)
                     .entity(e.getMessage())
                     .build();
         }
@@ -77,6 +78,7 @@ public class PokerPlayerManagementResource {
             System.out.println(e.getMessage());
             return Response
                     .status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .type(MediaType.TEXT_PLAIN)
                     .entity(e.getMessage())
                     .build();
         }
@@ -84,8 +86,7 @@ public class PokerPlayerManagementResource {
 
     @POST
     @Path("buyIn")
-    @Produces(MediaType.TEXT_PLAIN)
-    public String buyIn(@QueryParam("playerName") String playerName,
+    public Response buyIn(@QueryParam("playerName") String playerName,
                         @QueryParam("buyInAmount") int buyInAmount) {
         try {
             // Retrieve the player from the database
@@ -94,16 +95,28 @@ public class PokerPlayerManagementResource {
             // Check to make sure the player is not null (player exists in the database)
             if (player == null) {
                 // If the return is null, the player does not exist in the database.
-                return "Buy In failed - player does not exist.";
+                return Response
+                        .status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .type(MediaType.TEXT_PLAIN)
+                        .entity("Buy In failed - player does not exist.")
+                        .build();
             }
             else {
                 // Player exists.  Execute the buy in.
                 player.buyIn(buyInAmount);
-                return("Buy In successful. Player: '" + playerName + "' Amount: '" + buyInAmount + "'");
+                return Response
+                        .status(Response.Status.OK)
+                        .type(MediaType.TEXT_PLAIN)
+                        .entity("Buy In successful. Player: '" + playerName + "' Amount: '" + buyInAmount + "'")
+                        .build();
             }
         }
         catch (Exception e) {
-            return e.getMessage();
+            return Response
+                    .status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(e.getMessage())
+                    .build();
         }
     }
 

@@ -1,6 +1,10 @@
 package com.sevdev;
 
 public class Player {
+
+    // TODO: Temporarily hard coding the max stack size
+    private static int maxStackSize = 160;
+
     private String playerName;
     private Integer stackSize;
     private Integer totalBuyIn;
@@ -42,9 +46,17 @@ public class Player {
             Exception e = new Exception("Invalid amount to chips to deduct (negative value).");
             throw (e);
         }
+        else if ((this.stackSize + chipAmount) > maxStackSize) {
+            Exception e = new Exception("Cannot buy in for a stack size greater than " + maxStackSize);
+            throw (e);
+        }
         else{
             this.totalBuyIn += chipAmount;
             this.stackSize += chipAmount;
+
+            // Notify the player UI that a player change was made and the page needs to be updated.
+            WebSocketSessionManager.getInstance().notifyPlayer(playerName, "PlayerUpdated");
+            WebSocketSessionManager.getInstance().notifyPlayer("ALL", "TableUpdated");
         }
     }
 
@@ -67,6 +79,9 @@ public class Player {
         }
         else {
             stackSize -= chipAmount;
+
+            // Notify the player UI that a player change was made and the page needs to be updated.
+            WebSocketSessionManager.getInstance().notifyPlayer(playerName, "PlayerUpdated");
         }
     }
 
@@ -83,6 +98,9 @@ public class Player {
         }
         else {
             stackSize += chipAmount;
+
+            // Notify the player UI that a player change was made and the page needs to be updated.
+            WebSocketSessionManager.getInstance().notifyPlayer(playerName, "PlayerUpdated");
         }
     }
 }
