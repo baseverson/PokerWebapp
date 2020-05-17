@@ -18,6 +18,7 @@ public class TableState {
     private Integer smallBlindPosition = 0;
     private Integer bigBlindPosition = 0;
     private Integer currentAction = 0;
+    private Integer winningSeat = 0;
     private RoundState roundState = RoundState.UNDEFINED;
     private Card board[];
     private Seat seats[];
@@ -34,6 +35,7 @@ public class TableState {
     public Integer getSmallBlindPosition() { return smallBlindPosition; }
     public Integer getBigBlindPosition() { return bigBlindPosition; }
     public Integer getCurrentAction() { return currentAction; }
+    public Integer getWinningSeat() { return winningSeat; }
     public RoundState getRoundState() { return roundState; }
     public Card[] getBoard() { return board; }
     public Seat[] getSeats() { return seats; }
@@ -50,6 +52,7 @@ public class TableState {
     public void setSmallBlindPosition(Integer newSmallBlindPosition) { smallBlindPosition = newSmallBlindPosition.intValue(); }
     public void setBigBlindPosition(Integer newBigBlindPosition) { bigBlindPosition = newBigBlindPosition.intValue(); }
     public void setCurrentAction(Integer newCurrentAction) { currentAction = newCurrentAction.intValue(); }
+    public void setWinningSeat(Integer newWinningSeat) { winningSeat = newWinningSeat.intValue(); }
     public void setRoundState(RoundState newRoundState) { roundState = newRoundState; }
 
     /**

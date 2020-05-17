@@ -36,6 +36,7 @@ public class Table {
     private Integer smallBlindPosition = 0;
     private Integer bigBlindPosition = 0;
     private Integer currentAction = 0;
+    private Integer winningSeat = 0;
     private RoundState roundState = RoundState.UNDEFINED;
     private Card board[];
     private Seat seats[];
@@ -113,6 +114,7 @@ public class Table {
         tableState.setSmallBlindPosition(smallBlindPosition);
         tableState.setBigBlindPosition(bigBlindPosition);
         tableState.setCurrentAction(currentAction);
+        tableState.setWinningSeat(winningSeat);
         tableState.setRoundState(roundState);
         tableState.setBoard(board);
         tableState.setSeats(seats);
@@ -251,9 +253,8 @@ public class Table {
 
         // If all players but one have folded, end the game.  The single remaining player is the winner.
         if (getPlayersInHand() == 1) {
-            roundState = CLEAN_UP;
-            currentAction = 0;
             finishRound();
+            finishGame();
         }
         else {
             // Move on to the next player.
@@ -487,13 +488,32 @@ public class Table {
     }
 
     /**
-     * Reset the table to finish a round and prepare for the next round.
+     * Search through the remaining players in the round to find the winning hand.
+     *
+     * @return - seat number for the winning hand
      */
-    public void finishRound() {
+    public Integer determineWinner() {
+        // TODO
+        return 0;
+    }
+
+    /**
+     * Reset the table to finish a game and prepare for the next game.
+     */
+    public void finishGame() {
         // Reset the board
         for (int i=0; i<5; i++) {
             board[i] = null;
         }
+
+        // Reset the round state
+        roundState = CLEAN_UP;
+
+        // Reset the action position
+        currentAction = 0;
+
+        // Reset the bet position
+        currentBetPosition = 0;
 
         // TODO - award the pot to the winner
         pot = 0;
@@ -533,6 +553,9 @@ public class Table {
 
         // Reset the round state
         roundState = PRE_FLOP;
+
+        // Reset the winning hand indicator
+        winningSeat = 0;
 
         // Move the dealer button
         if (dealerPosition==0) {
@@ -638,11 +661,9 @@ public class Table {
     }
 
     /**
-     * Manually advance the round to the next state.
-     *
-     * @return New round state.
+     * Clean up the round and prepare for the next round.
      */
-    public RoundState advanceRound() {
+    public void finishRound() {
 
         // Gather up all the bets and put them into the pot
         for (int i=0; i<seats.length; i++) {
@@ -652,10 +673,20 @@ public class Table {
 
         // Set the table's current bet back to 0;
         currentBet = 0;
+    }
 
+    /**
+     * Manually advance the round to the next state.
+     *
+     * @return New round state.
+     */
+    public RoundState advanceRound() {
         try {
+            // Clean up the current round
+            finishRound();
+
             // Set the action to the first player after the dealer that is not All In
-            // TODO: Don't think I need to worry about all in players here
+            // TODO: handle case of all in players
             //currentAction = findNextPlayerNotAllIn(dealerPosition);
             currentAction = findNextPlayer(dealerPosition);
 
@@ -683,11 +714,10 @@ public class Table {
                 roundState = SHOWDOWN;
                 currentAction = 0;
                 // TODO: Declare and display winner
+                int winningSeat = determineWinner();
                 break;
             case SHOWDOWN:
-                roundState = CLEAN_UP;
-                currentAction = 0;
-                finishRound();
+                finishGame();
                 break;
         }
 
