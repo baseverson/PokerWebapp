@@ -45,6 +45,11 @@ public class Table {
         return tableId;
     }
 
+    public void setWinningSeat(int seatNum) {
+        this.winningSeat = seatNum;
+        sendTableStateChangeNotification("ALL");
+    }
+
     /**
      * Constructor
      */
@@ -515,7 +520,21 @@ public class Table {
         // Reset the bet position
         currentBetPosition = 0;
 
-        // TODO - award the pot to the winner
+        try {
+            // Award the pot to the winner
+            // Make sure the winning seat number is valid and has a player in it
+            if (0 < winningSeat && winningSeat < numSeats && seats[winningSeat-1].getPlayer() != null) {
+                // Add the pot to the winning player's stack
+                seats[winningSeat-1].getPlayer().addChipsToStack(pot);
+            }
+        }
+        catch (Exception e) {
+            // Exception caught adding chips to the winning player's stack.  Print it and move on.
+            System.out.println(e.getMessage());
+            System.out.println(e.getStackTrace());
+        }
+
+        // Clear the pot for the next game
         pot = 0;
 
         for (int i=0; i<seats.length; i++) {

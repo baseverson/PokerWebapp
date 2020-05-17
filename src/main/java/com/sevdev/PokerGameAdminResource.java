@@ -4,14 +4,15 @@ import static java.lang.Math.abs;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import static com.sevdev.RoundState.*;
 
 /**
  * Root resource (exposed at "PokerAdmin" path)
  */
-@Path("Admin")
-public class PokerAdminResource {
+@Path("GameAdmin")
+public class PokerGameAdminResource {
 
     @GET
     @Path("newRound")
@@ -84,15 +85,35 @@ public class PokerAdminResource {
     }
 
     /**
+     * Manually set the seat numer that should win the game.
+     *
+     * @param seatNum - winning seat number
+     *
+     * @return HTTP Response indicating successful setting of the winner
+     */
+    @POST
+    @Path("setWinningSeatNum")
+    public Response setWinningSeatNum(@QueryParam("seatNum") Integer seatNum) {
+        System.out.println("Setting winning seat to " + seatNum);
+        Table.getInstance().setWinningSeat(seatNum);
+        System.out.println("Winning seat set to " + seatNum);
+        return Response
+                .status(Response.Status.OK)
+                .type(MediaType.TEXT_PLAIN)
+                .entity("Winner set to seat #" + seatNum)
+                .build();
+    }
+
+    /**
      * Method handling HTTP POST request to add chips to a player's stack
      *
      * @return - Status message indicating that chips were added to the player's stack
      */
     @GET
-    @Path("addChipsToPlayer")
+    @Path("addChipsToPlayerStack")
     @Produces(MediaType.TEXT_PLAIN)
-    public String addChipsToPlayer(@QueryParam("playerName") String playerName,
-                                   @QueryParam("chipAmount") Integer chipAmount) {
+    public String addChipsToPlayerStack(@QueryParam("playerName") String playerName,
+                                        @QueryParam("chipAmount") Integer chipAmount) {
         try {
             // TODO
             //return Table.getTable().adjustPlayerChips(playerName, abs(chipAmount));

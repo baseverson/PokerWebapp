@@ -8,11 +8,19 @@
 
 <script src="javascript/cookies.js"></script>
 <script src="javascript/Poker.js"></script>
-<script src="javascript/PokerAdmin.js"></script>
+<script src="javascript/Poker_GameAdmin.js"></script>
+<script src="javascript/Poker_PlayerAdmin.js"></script>
 
 <h2>Brandt's Poker Room (V1.1 - ALPHA) - ADMIN</h2>
 
-<button type="button" onClick="admin_newGame()">New Game</button><br>
-<button type="button" onClick="admin_advanceRound()">Advance Round</button>
-<button type="button" onClick="admin_advanceAction()">Advance Action</button><br>
+<h3>Game Management</h3>
+<button type="button" onClick="admin_newGame()">New Game</button><br><br>
+<button type="button" onClick="admin_advanceRound()">Advance Round</button><br><br>
+<button type="button" onClick="admin_advanceAction()">Advance Action</button><br><br>
+
+<input id="winningSeatNum" size="3" >
+<button type="button" onClick="admin_setWinner()">Set Winner</button><br><br>
 <br><br>
+
+<h3>Player Management</h3>
+
