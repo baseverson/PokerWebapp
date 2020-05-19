@@ -10,9 +10,6 @@ import javax.ws.rs.core.Response;
 
 import static java.lang.Math.abs;
 
-/**
- * Root resource (exposed at "PokerAdmin" path)
- */
 @Path("PlayerManagement")
 public class PokerPlayerManagementResource {
 

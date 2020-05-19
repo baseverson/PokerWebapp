@@ -104,45 +104,6 @@ public class PokerGameAdminResource {
                 .build();
     }
 
-    /**
-     * Method handling HTTP POST request to add chips to a player's stack
-     *
-     * @return - Status message indicating that chips were added to the player's stack
-     */
-    @GET
-    @Path("addChipsToPlayerStack")
-    @Produces(MediaType.TEXT_PLAIN)
-    public String addChipsToPlayerStack(@QueryParam("playerName") String playerName,
-                                        @QueryParam("chipAmount") Integer chipAmount) {
-        try {
-            // TODO
-            //return Table.getTable().adjustPlayerChips(playerName, abs(chipAmount));
-            return "";
-        }
-        catch (Exception e) {
-            return e.toString();
-        }
-    }
-
-    /**
-     * Method handling HTTP POST request to remove chips to a player's stack
-     *
-     * @return - Status message indicating that chips were removed to the player's stack
-     */
-    @GET
-    @Path("removeChipsFromPlayer")
-    @Produces(MediaType.TEXT_PLAIN)
-    public String removeChipsFromPlayer(@QueryParam("playerName") String playerName,
-                                        @QueryParam("chipAmount") Integer chipAmount) {
-        try {
-            // TODO
-            //return Table.getTable().adjustPlayerChips(playerName, (abs(chipAmount) * -1));
-            return "";
-        }
-        catch (Exception e) {
-            return e.toString();
-        }
-    }
 
 
     /*

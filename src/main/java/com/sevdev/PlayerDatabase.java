@@ -1,8 +1,9 @@
 package com.sevdev;
 
+import java.util.HashMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.HashMap;
+import redis.clients.jedis.Jedis;
 
 public class PlayerDatabase {
 
@@ -16,13 +17,28 @@ public class PlayerDatabase {
         return instance;
     }
 
+    // Memory store for the player DB
     private HashMap<String, Player> playerMap;
+
+    // Connection to the local Redis DB
+    Jedis jedis = null;
 
     /**
      * Constructor
      */
     public PlayerDatabase() {
         playerMap = new HashMap<String, Player>();
+
+    }
+
+    /**
+     * Initializer for the Player DB.
+     */
+    public void initialize() {
+        // Connect to the local Redis server
+        jedis = new Jedis("192.168.86.16");
+
+        // TODO: Read all players from the Redis DB and construct the player list in memory
     }
 
     /**
@@ -58,6 +74,10 @@ public class PlayerDatabase {
             // Player does not exist. Create user object and add to list.
             Player player = new Player(playerName);
             playerMap.put(playerName, player);
+
+            // Create the player in Redis
+            jedis.set("player:" + playerName, "This will eventually be a JSON");
+
             return getPlayerAsJSON(playerName);
         }
         else {
@@ -138,6 +158,9 @@ public class PlayerDatabase {
      */
     public static void main(String[] args) {
         PlayerDatabase playerDB = new PlayerDatabase();
+
+        playerDB.initialize();
+
 
         System.out.println("Retrieving player 'Brandt'");
         if (playerDB.getPlayer("Brandt") == null) {

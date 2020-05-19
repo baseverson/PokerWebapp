@@ -303,13 +303,13 @@ public class Table {
         }
 
         // If the bet is greater than the player's stack, assume the player is going All In.
-        if (currentBet > seats[seatNum - 1].getPlayer().getStackSize()) {
-            betAmount = seats[seatNum - 1].getPlayer().getStackSize();
+        if (currentBet > seats[seatNum - 1].getPlayer().getStack()) {
+            betAmount = seats[seatNum - 1].getPlayer().getStack();
         }
 
         try {
             // Deduct the chips from the players stack and set the seat's current bet to the new bet.
-            seats[seatNum-1].getPlayer().deductChipsFromStack(betAmount);
+            seats[seatNum-1].getPlayer().adjustStack(betAmount * -1);
 
             // Update the current bet for the seat
             seats[seatNum-1].setPlayerBet(betAmount);
@@ -321,7 +321,7 @@ public class Table {
             }
 
             // Check to see if the player is All In. If so, set the seat state as such.
-            if (seats[seatNum-1].getPlayer().getStackSize() == 0) {
+            if (seats[seatNum-1].getPlayer().getStack() == 0) {
                 seats[seatNum-1].setIsAllIn(true);
             }
 
@@ -357,17 +357,17 @@ public class Table {
         int callAmount = currentBet - seats[seatNum-1].getPlayerBet();
 
         // Check first that there are enough chips for a full call. If not, player is going all in.
-        if (callAmount > seats[seatNum-1].getPlayer().getStackSize()) {
-            callAmount = seats[seatNum-1].getPlayer().getStackSize();
+        if (callAmount > seats[seatNum-1].getPlayer().getStack()) {
+            callAmount = seats[seatNum-1].getPlayer().getStack();
         }
 
         try {
             // Deduct the difference between the table's current bet and the player's current bet from the player's stack
-            seats[seatNum-1].getPlayer().deductChipsFromStack(callAmount);
+            seats[seatNum-1].getPlayer().adjustStack(callAmount * -1);
             seats[seatNum-1].increasePlayerBet(callAmount);
 
             // Check to see if the player stack is now 0. If so, they are all in.
-            if (seats[seatNum-1].getPlayer().getStackSize() == 0) {
+            if (seats[seatNum-1].getPlayer().getStack() == 0) {
                 seats[seatNum-1].setIsAllIn(true);
             }
         }
@@ -423,14 +423,14 @@ public class Table {
 
             // Find the seat the player is in
             int seatNum = getPlayerSeatNum(playerName);
-            int betSize = seats[seatNum-1].getPlayer().getStackSize();
+            int betSize = seats[seatNum-1].getPlayer().getStack();
 
             // Set the seat's player bet to the player's entire stack
             seats[seatNum-1].increasePlayerBet(betSize);
 
             // Set the player's stack size to zero
 
-            seats[seatNum-1].getPlayer().deductChipsFromStack(betSize);
+            seats[seatNum-1].getPlayer().adjustStack(betSize * -1);
 
             // Check to see if this is the new table current bet
             if (seats[seatNum-1].getPlayerBet() > currentBet) {
@@ -525,7 +525,7 @@ public class Table {
             // Make sure the winning seat number is valid and has a player in it
             if (0 < winningSeat && winningSeat < numSeats && seats[winningSeat-1].getPlayer() != null) {
                 // Add the pot to the winning player's stack
-                seats[winningSeat-1].getPlayer().addChipsToStack(pot);
+                seats[winningSeat-1].getPlayer().adjustStack(pot);
             }
         }
         catch (Exception e) {
@@ -560,7 +560,7 @@ public class Table {
         // Any player sitting at the table with chips is in the next hand
         for (int i=0; i<seats.length; i++) {
             // Only set the player as in the hand if they have chips
-            if (seats[i].getPlayer() != null && seats[i].getPlayer().getStackSize() > 0) {
+            if (seats[i].getPlayer() != null && seats[i].getPlayer().getStack() > 0) {
                 seats[i].setInHand(true);
             }
         }
@@ -587,11 +587,11 @@ public class Table {
         incrementDealerPosition();
 
         // Pull small blind
-        seats[smallBlindPosition-1].getPlayer().deductChipsFromStack(bigBlind/2);
+        seats[smallBlindPosition-1].getPlayer().adjustStack((bigBlind/2) * -1);
         seats[smallBlindPosition-1].increasePlayerBet(bigBlind/2);
 
         // Pull big blind
-        seats[bigBlindPosition-1].getPlayer().deductChipsFromStack(bigBlind);
+        seats[bigBlindPosition-1].getPlayer().adjustStack(bigBlind * -1);
         seats[bigBlindPosition-1].increasePlayerBet(bigBlind);
 
         // Set the currnetBet to the big blind
