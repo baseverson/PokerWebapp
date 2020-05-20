@@ -30,7 +30,7 @@
                     <url>http://192.168.86.16:8080/manager/text</url>
                     <username>maven-deploy</username>
                     <password>pack4mvn</password>
-                    <path>/Poker_alpha</path>
+                    <path>/${gameName}</path>
                 </configuration>
             </plugin>
         </plugins>
