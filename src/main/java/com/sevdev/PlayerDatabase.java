@@ -2,10 +2,17 @@ package com.sevdev;
 
 import java.util.HashMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import redis.clients.jedis.Jedis;
 
 public class PlayerDatabase {
+
+    // Address of the Redis Player DB
+    private static String dbAddress = new String("192.168.86.16");
+
+    // Static keys for accessing the DB
+    private static String playerKey = new String("player:");
+    private static String stackKey = new String("stack");
+    private static String buyinKey = new String("buyin");
 
     // Make this a singleton
     private static PlayerDatabase instance = null;
@@ -13,6 +20,7 @@ public class PlayerDatabase {
     public static PlayerDatabase getInstance() {
         if (instance == null) {
             instance = new PlayerDatabase();
+            instance.initialize();
         }
         return instance;
     }
@@ -36,9 +44,10 @@ public class PlayerDatabase {
      */
     public void initialize() {
         // Connect to the local Redis server
-        jedis = new Jedis("192.168.86.16");
+        jedis = new Jedis(dbAddress);
 
-        // TODO: Read all players from the Redis DB and construct the player list in memory
+        // Pass the Jedis connection to the Player class
+        Player.setJedis(jedis);
     }
 
     /**
@@ -69,21 +78,22 @@ public class PlayerDatabase {
      * @throws Exception - player already exists in the database.
      */
     public String createPlayer(String playerName) throws Exception {
-        // Verify playerName does not already exist in the map
-        if (getPlayer(playerName) == null) {
-            // Player does not exist. Create user object and add to list.
-            Player player = new Player(playerName);
-            playerMap.put(playerName, player);
-
-            // Create the player in Redis
-            jedis.set("player:" + playerName, "This will eventually be a JSON");
-
-            return getPlayerAsJSON(playerName);
+        // Check to see if the player already exists in the DB
+        if (jedis.hexists("player:"+playerName, "stack")) {
+            Exception e = new Exception("Player already exists in the database.");
+            throw e;
         }
         else {
-            Exception e = new Exception("Player already exists in the database.");
-            System.out.println(e.getMessage());
-            throw e;
+            // Make sure the player is not already in the map.  If so, remove it.
+            if (getPlayer(playerName) != null) {
+                playerMap.remove(playerName);
+            }
+
+            // Create the player in the DB and set the stack and buyin to 0
+            jedis.hsetnx(playerKey+playerName, stackKey, "0");
+            jedis.hsetnx(playerKey+playerName, buyinKey, "0");
+
+            return "Player '" + playerName + "' created successfully.";
         }
     }
 
@@ -97,15 +107,33 @@ public class PlayerDatabase {
      * @throws Exception - player does not exist in the database
      */
     public String login(String playerName) throws Exception {
-        // Verify playerName already exists in the map
-        if (getPlayer(playerName) != null) {
-            // Player does exist. Return a JSON with the player info.
-            return getPlayerAsJSON(playerName);
-        }
-        else {
-            Exception e = new Exception("Player down not exist in the database.");
+        // Check to see if the player already exists in the DB
+        if (!jedis.hexists("player:"+playerName, "stack")) {
+            Exception e = new Exception("Player does not exist in the database.");
             throw e;
         }
+        // Verify playerName does not already exist in the map
+        else if (getPlayer(playerName) == null) {
+            // Player object does not exist in thew map.  Create a player object and add it to the map.
+            playerMap.put(playerName, new Player(playerName));
+        }
+
+        // Return a JSON with the player info.
+        return getPlayerAsJSON(playerName);
+    }
+
+    /**
+     * Player logout.
+     *
+     * @param playerName - name of the player to log out
+     *
+     * @return String with result of logout action
+     */
+    public String logout(String playerName) {
+        // Remove the player from the map
+        playerMap.remove(playerName);
+
+        return ("Player '" + playerName + "' logged out successfully.");
     }
 
     /**
@@ -157,11 +185,10 @@ public class PlayerDatabase {
      * @param args
      */
     public static void main(String[] args) {
-        PlayerDatabase playerDB = new PlayerDatabase();
+        PlayerDatabase playerDB = PlayerDatabase.getInstance();
 
-        playerDB.initialize();
-
-
+        String result = new String();
+/*
         System.out.println("Retrieving player 'Brandt'");
         if (playerDB.getPlayer("Brandt") == null) {
             System.out.println("SUCCESS - return is null.");
@@ -172,11 +199,12 @@ public class PlayerDatabase {
 
         try {
             System.out.println("Adding Brandt - 1st time");
-            playerDB.createPlayer("Brandt");
-            System.out.println("Player 'Brandt' added successfully.");
+            result = playerDB.createPlayer("Brandt");
+            System.out.println("Player 'Brandt' added successfully. Result: '" + result + "'");
         }
         catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("FAIL - " + e.getMessage());
+
         }
 
         try {
@@ -188,12 +216,63 @@ public class PlayerDatabase {
             System.out.println(e.getMessage());
         }
 
-        System.out.println("Retrieving player 'Brandt'");
+        System.out.println("Retrieving player 'Brandt' before login.");
         if (playerDB.getPlayer("Brandt") == null) {
-            System.out.println("FAIL - return is null.");
+            System.out.println("SUCCESS - return is null.");
         }
         else {
+            System.out.println("FAIL - return is NOT null.");
+        }
+
+        try {
+            System.out.println("Login for player 'Brandt'");
+            result = playerDB.login("Brandt");
+            System.out.println("Player 'Brandt' successfully logged in. Result: " + result);
+        }
+        catch (Exception e) {
+             System.out.println("FAIL - exception caught.");
+        }
+
+        System.out.println("Retrieving player 'Brandt' after login.");
+        if (playerDB.getPlayer("Brandt") != null) {
             System.out.println("SUCCESS - return is NOT null.");
         }
+        else {
+            System.out.println("FAIL - return is null.");
+        }
+
+        try {
+            System.out.println("Login for player 'Traci' before creating player.");
+            result = playerDB.login("Traci");
+            System.out.println("Player 'Traci' successfully logged in. Result: " + result);
+        }
+        catch (Exception e) {
+            System.out.println("SUCCESS - caught exception logging in 'Traci' before player creation.");
+            System.out.println(e.getMessage());
+        }
+*/
+        playerDB.jedis.flushAll();
+        try {
+            playerDB.createPlayer("Traci");
+            playerDB.login("Traci");
+            System.out.println(playerDB.getPlayerAsJSON("Traci"));
+
+            playerDB.createPlayer("Zoe");
+            playerDB.login("Zoe");
+            playerDB.createPlayer("Claire");
+            playerDB.login("Claire");
+            playerDB.createPlayer("Lucky");
+            playerDB.login("Lucky");
+            playerDB.createPlayer("Donkey");
+            playerDB.login("Donkey");
+
+            System.out.println(playerDB.getPlayerListAsJSON());
+            System.out.println("player list test complete");
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+
     }
 }

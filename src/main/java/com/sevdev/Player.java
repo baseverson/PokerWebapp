@@ -1,5 +1,6 @@
 package com.sevdev;
 
+import com.sevdev.WebSocketSessionManager;
 import redis.clients.jedis.Jedis;
 
 import static java.lang.Integer.parseInt;
@@ -21,18 +22,26 @@ public class Player {
     public static void setJedis(Jedis newJedis) { Player.jedis = newJedis; }
 
     private String playerName;
-    //private Integer stackSize;
-    //private Integer totalBuyIn;
+    private Integer stack;
+    private Integer buyin;
 
     /**
      * Constructor.
      *
      * @param newPlayerName - name of the new player
+     *
+     * @throws Exception - if player does not exist in the database
      */
-    public Player (String newPlayerName) {
-        playerName = newPlayerName;
-        //stackSize = 0;
-        //totalBuyIn = 0;
+    public Player (String newPlayerName) throws Exception {
+        // Veryify player exists in the DB. Otherwise throw an exception.
+        if (jedis.hexists(playerKey+newPlayerName, stackKey)) {
+            this.playerName = newPlayerName;
+            this.stack = parseInt(jedis.hget(playerKey + playerName, stackKey));
+            this.buyin = parseInt(jedis.hget(playerKey + playerName, buyinKey));
+        }
+        else {
+            throw new Exception("Player does not exist in the database.");
+        }
     }
 
     /**
@@ -40,15 +49,19 @@ public class Player {
      *
      * @param playerToCopy - player object to copy
      */
+/*
     public Player (Player playerToCopy) {
         this.playerName = playerToCopy.playerName;
-        //this.stackSize = playerToCopy.stackSize;
-        //this.totalBuyIn = playerToCopy.totalBuyIn;
+        this.stackSize = playerToCopy.stackSize;
+        this.totalBuyIn = playerToCopy.totalBuyIn;
     }
+*/
 
     public String getPlayerName() { return playerName; }
-    public Integer getStack() { return parseInt(jedis.hget(playerKey + playerName, stackKey)); }
-    public Integer getBuyIn() { return parseInt(jedis.hget(playerKey + playerName, buyinKey)); }
+    //public Integer getStack() { return parseInt(jedis.hget(playerKey + playerName, stackKey)); }
+    //public Integer getBuyin() { return parseInt(jedis.hget(playerKey + playerName, buyinKey)); }
+    public Integer getStack() { return stack.intValue(); }
+    public Integer getBuyin() { return buyin.intValue(); }
 
     /**
      * Player buys in for (more) chips.
@@ -65,11 +78,15 @@ public class Player {
             Exception e = new Exception("Cannot buy in for a stack size greater than " + maxStackSize);
             throw (e);
         }
-        else{
+        else {
+            // Increase the buyin by the chip amount
+            this.buyin += chipAmount;
+            // Increase the stack by the chip amount
+            this.stack += chipAmount;
+
+            // Update the database for both
             jedis.hincrBy(playerKey+playerName, buyinKey, chipAmount);
             jedis.hincrBy(playerKey+playerName, stackKey, chipAmount);
-            //this.totalBuyIn += chipAmount;
-            //this.stackSize += chipAmount;
 
             // Notify the player UI that a player change was made and the page needs to be updated.
             WebSocketSessionManager.getInstance().notifyPlayer(playerName, "PlayerUpdated");
@@ -91,9 +108,34 @@ public class Player {
             throw (e);
         }
         else {
+            // Update the stack
+            stack += chipAmount;
+
+            // Update the database
             jedis.hincrBy(playerKey + playerName, stackKey, chipAmount);
+
             // Notify the player UI that a player change was made and the page needs to be updated.
             WebSocketSessionManager.getInstance().notifyPlayer(playerName, "PlayerUpdated");
+        }
+    }
+
+    public static void main(String[] args) {
+        Jedis jedis = new Jedis("192.168.86.16");
+        Player.setJedis(jedis);
+
+        // Create the player in the DB and set the stack and buyin to 0
+        jedis.hsetnx(playerKey+"Brandt", stackKey, "0");
+        jedis.hsetnx(playerKey+"Brandt", buyinKey, "0");
+
+        try {
+            Player player1 = new Player("Brandt");
+            System.out.println("Brandt - stack: " + player1.getStack());
+            System.out.println("Brandt - buyin: " + player1.getBuyin());
+        }
+        catch (Exception e) {
+            System.out.println("Exception caught creating player object for 'Brandt'.");
+            System.out.println(e.getMessage());
+            System.out.println(e.getStackTrace());
         }
     }
 }

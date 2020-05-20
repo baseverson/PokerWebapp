@@ -44,11 +44,11 @@ public class PokerPlayerManagementResource {
     @Path("createPlayer")
     public Response createPlayer(@QueryParam("playerName") String playerName) {
         try {
-            String playerJSON =  PlayerDatabase.getInstance().createPlayer(playerName);
+            String responseMsg =  PlayerDatabase.getInstance().createPlayer(playerName);
             return Response
                     .status(Response.Status.OK)
-                    .type(MediaType.APPLICATION_JSON)
-                    .entity(playerJSON)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(responseMsg)
                     .build();
         }
         catch (Exception e) {
@@ -72,11 +72,47 @@ public class PokerPlayerManagementResource {
     @Path("login")
     public Response login(@QueryParam("playerName") String playerName) {
         try {
-            String playerJSON =  PlayerDatabase.getInstance().getPlayerAsJSON(playerName);
+            String playerJSON =  PlayerDatabase.getInstance().login(playerName);
             return Response
                     .status(Response.Status.OK)
                     .type(MediaType.APPLICATION_JSON)
                     .entity(playerJSON)
+                    .build();
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+            return Response
+                    .status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * Player logout
+     *
+     * @param playerName - name of the player logging out
+     *
+     * @return String with result of the logout action
+     */
+    @POST
+    @Path("logout")
+    public Response logout(@QueryParam("playerName") String playerName) {
+        try {
+            Table table = Table.getInstance();
+
+            // If the player is in a hand, fold
+            Table.getInstance().fold(playerName);
+
+            // If the player is at the table, leave
+            Table.getInstance().leaveTable(playerName);
+
+            String result =  PlayerDatabase.getInstance().logout(playerName);
+            return Response
+                    .status(Response.Status.OK)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(result)
                     .build();
         }
         catch (Exception e) {

@@ -134,7 +134,8 @@ public class TableState {
             // If there is a player in this seat, copy the player info
             if (newSeats[i].getPlayer() != null) {
                 // Copy over the player info - name and stack size
-                seats[i].setPlayer(new Player(newSeats[i].getPlayer()));
+                // TODO
+                seats[i].setPlayer(newSeats[i].getPlayer());
 
                 // Copy over the in hand status
                 seats[i].setInHand(newSeats[i].getInHand());

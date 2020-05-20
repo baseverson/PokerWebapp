@@ -16,13 +16,26 @@ public class PokerTableResource {
      *
      * @param playerName - player retrieving table state
      *
-     * @return String that will be returned as a text/plain response.
+     * @return HTTP response
      */
     @GET
     @Path("getTableState")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getTableState(@QueryParam("playerName") String playerName) {
-        return Table.getInstance().getTableStateAsJSON(playerName);
+    public Response getTableState(@QueryParam("playerName") String playerName) {
+        try {
+            String tableStateJSON = Table.getInstance().getTableStateAsJSON(playerName);
+            return Response
+                    .status(Response.Status.OK)
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(tableStateJSON)
+                    .build();
+        }
+        catch (Exception e) {
+            return Response
+                    .status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(e.getMessage())
+                    .build();
+        }
     }
 
     /**
@@ -60,15 +73,15 @@ public class PokerTableResource {
     /**
      * Method handling HTTP POST requests for a player leaving a seat at a table.
      *
-     * @param seatNum - seat player is vacating
+     * @param playerName - name of the player player that is vacating
      *
-     * @return String confirming the player left the table and which seat.
+     * @return String confirming the player left the table
      */
     @POST
     @Path("leaveTable")
     @Produces(MediaType.TEXT_PLAIN)
-    public String leaveTable(@QueryParam("seatNum") int seatNum) {
-        return Table.getInstance().leaveTable(seatNum);
+    public String leaveTable(@QueryParam("playerName") String playerName) {
+        return Table.getInstance().leaveTable(playerName);
     }
 
     /**

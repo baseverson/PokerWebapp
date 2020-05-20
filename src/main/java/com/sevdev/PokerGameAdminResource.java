@@ -64,25 +64,20 @@ public class PokerGameAdminResource {
         return "Action advanced.";
     }
 
-    @GET
-    @Path("getPlayerDatabase")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getPlayerDatabase() {
-        return PlayerDatabase.getInstance().getPlayerListAsJSON();
-    }
-
     /**
      * Method handling HTTP GET requests for the complete table state. The returned object will be sent
      * to the client as "application/json" media type.
      *
      * @return String that will be returned as a text/plain response.
      */
+/*
     @GET
     @Path("getTotalTableState")
     @Produces(MediaType.APPLICATION_JSON)
     public String getTableState() {
         return Table.getInstance().getTableStateAsJSON("none");
     }
+*/
 
     /**
      * Manually set the seat numer that should win the game.

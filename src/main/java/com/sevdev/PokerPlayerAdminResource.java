@@ -9,6 +9,16 @@ import javax.ws.rs.core.MediaType;
 @Path("PlayerAdmin")
 public class PokerPlayerAdminResource {
 
+    /**
+     * Retrieve the entire list of logged in players
+     * @return
+     */
+    @GET
+    @Path("getPlayerLoginList")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getPlayerLoginList() {
+        return PlayerDatabase.getInstance().getPlayerListAsJSON();
+    }
 
     /**
      * Method handling HTTP POST request to add chips to a player's stack

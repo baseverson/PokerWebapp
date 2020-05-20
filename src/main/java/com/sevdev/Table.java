@@ -98,9 +98,12 @@ public class Table {
      * showing him/her only the info they are currently allowed to see.
      *
      * @param playerName - the name of the player requesting the table state
+     *
      * @return String containing the current state of the table (JSON formatted string)
+     *
+     * @throws Exception - table state cannot be translated into JSON
      */
-    public String getTableStateAsJSON(String playerName) {
+    public String getTableStateAsJSON(String playerName) throws Exception {
 
         System.out.println("Getting table state - playerName = '" + playerName + "'");
 
@@ -129,7 +132,7 @@ public class Table {
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tableState);
         } catch (Exception e) {
             e.printStackTrace();
-            return "Error converting TableState object to JSON.";
+            throw new Exception("Error converting TableState object to JSON.");
         }
     }
 
@@ -194,23 +197,28 @@ public class Table {
     /**
      * Method for indicating a player wishes to leave the table.
      *
-     * @param seatNum - Seat the player wants to leave
+     * @param playerName - name of the player leaving
      * @return String indicating the outcome of the request to leave the table
      */
-    public String leaveTable(int seatNum) {
+    public String leaveTable(String playerName) {
 
         // TODO: Check to make sure the player is really in the seat
-        if (seats[seatNum - 1].getPlayer() != null) {
+
+        // Find the seat the player is currently occupying (if any)
+        int seatNum = getPlayerSeatNum(playerName);
+
+        //if (seats[seatNum - 1].getPlayer() != null) {
+        if (seatNum > 0) {
             seats[seatNum - 1].setPlayer(null);
             numPlayers--;
-            // TODO - other cleanup for player leaving? (e.g. update DB for remaining chips)
 
             // Notify all players that the table has been updates
             sendTableStateChangeNotification("ALL");
 
-            return "The player has successfully left seat " + seatNum;
-        } else {
-            return " No player in seat " + seatNum + ".";
+            return "Player '" + playerName + "' has successfully left seat " + seatNum;
+        }
+        else {
+            return "Player '" + playerName + "' is not in a seat.";
         }
     }
 
@@ -242,26 +250,28 @@ public class Table {
      * @return - result of the fold
      */
     public String fold(String playerName) {
-        // Verify the action is on the player requesting the action
-        if (!actionOnPlayer(playerName)) {
-            return ("Out of turn move. Action is not currently on " + playerName);
-        }
-
         // Get which seat the player is in.
         int seatNum = getPlayerSeatNum(playerName);
 
-        // Mark the seat as not in the current hand.
-        seats[seatNum - 1].setInHand(false);
+        // Make sure the player is actually sitting at the table
+        if (seatNum != 0) {
+            // Move the current bet to the pot
+            pot += seats[seatNum-1].getPlayerBet();
+            seats[seatNum-1].setPlayerBet(0);
 
-        // Clear this seat's cards.
-        seats[seatNum - 1].clearCards();
+            // Mark the seat as not in the current hand.
+            seats[seatNum - 1].setInHand(false);
+
+            // Clear this seat's cards.
+            seats[seatNum - 1].clearCards();
+        }
 
         // If all players but one have folded, end the game.  The single remaining player is the winner.
         if (getPlayersInHand() == 1) {
             finishRound();
             finishGame();
         }
-        else {
+        else if (actionOnPlayer(playerName)) {
             // Move on to the next player.
             advanceAction();
         }
@@ -494,12 +504,21 @@ public class Table {
 
     /**
      * Search through the remaining players in the round to find the winning hand.
-     *
-     * @return - seat number for the winning hand
      */
-    public Integer determineWinner() {
-        // TODO
-        return 0;
+    public void determineWinner() {
+        // First, check for the case that everyone folded
+        if (getPlayersInHand() == 1) {
+            // There's only one player left.  Everyone else must have folded.  He's the winner.
+            for (int i=0; i<numSeats; i++) {
+                if (seats[i].getInHand()) {
+                    // This is the player still in the hand. Declare him the winner.
+                    winningSeat = i+1;
+                    return;
+                }
+            }
+        }
+
+        // TODO - handle the rest of the winning cases
     }
 
     /**
@@ -522,6 +541,8 @@ public class Table {
 
         try {
             // Award the pot to the winner
+            determineWinner();
+
             // Make sure the winning seat number is valid and has a player in it
             if (0 < winningSeat && winningSeat < numSeats && seats[winningSeat-1].getPlayer() != null) {
                 // Add the pot to the winning player's stack
@@ -733,7 +754,7 @@ public class Table {
                 roundState = SHOWDOWN;
                 currentAction = 0;
                 // TODO: Declare and display winner
-                int winningSeat = determineWinner();
+                determineWinner();
                 break;
             case SHOWDOWN:
                 finishGame();
