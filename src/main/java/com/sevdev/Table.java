@@ -2,6 +2,9 @@ package com.sevdev;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
 import static com.sevdev.RoundState.*;
@@ -521,8 +524,35 @@ public class Table {
                 }
             }
         }
+        else if (getPlayersInHand() >= 2) {
+            // More than 2 players still in the hand. Gather all the hands and rank them.
+            List<Hand> handList = new ArrayList<Hand>();
 
-        // TODO - handle the rest of the winning cases
+            // Check each seat
+            for (Seat seat : seats) {
+                if (seat.getInHand() == true) {
+                    // If the seat is in, make a new hand and add all the seat's cards to the hand
+                    Hand hand = new Hand(seat.getSeatNum());
+                    hand.addCards(seat.getCards());
+                    hand.addCards(board);
+
+                    // Evaluate the hand to determine it's rank
+                    hand.evaluate();
+
+                    // Add the hand to the list.
+                    handList.add(hand);
+                }
+            }
+
+            // Once all the hands are assembled, sort the hand list by rank to see which hand is the winner
+            Collections.sort(handList, Collections.<Hand>reverseOrder());
+
+            // TODO: Need to handle cases of ties
+
+            // The hand at the top of the list is the winner.
+            winningSeat = handList.get(0).getSeatNum();
+            winningHand = handList.get(0).getType();
+        }
     }
 
     /**
@@ -871,14 +901,17 @@ public class Table {
         try {
             //myTable.initialize(8, 2);
 
-            PlayerDatabase.getInstance().createPlayer("Brandt");
-            PlayerDatabase.getInstance().getPlayer("Brandt").buyIn(160);
-            PlayerDatabase.getInstance().createPlayer("Traci");
-            PlayerDatabase.getInstance().getPlayer("Traci").buyIn(160);
-            PlayerDatabase.getInstance().createPlayer("Zoe");
-            PlayerDatabase.getInstance().getPlayer("Zoe").buyIn(160);
+//            PlayerDatabase.getInstance().createPlayer("Claire");
+            PlayerDatabase.getInstance().login("Claire");
+//            PlayerDatabase.getInstance().getPlayer("Claire").buyIn(160);
+//            PlayerDatabase.getInstance().createPlayer("Traci");
+            PlayerDatabase.getInstance().login("Traci");
+//            PlayerDatabase.getInstance().getPlayer("Traci").buyIn(160);
+//            PlayerDatabase.getInstance().createPlayer("Zoe");
+            PlayerDatabase.getInstance().login("Zoe");
+//            PlayerDatabase.getInstance().getPlayer("Zoe").buyIn(160);
 
-            myTable.sitDown("Brandt", 1);
+            myTable.sitDown("Claire", 1);
             myTable.sitDown("Traci", 2);
             myTable.sitDown("Zoe", 3);
 
@@ -886,20 +919,21 @@ public class Table {
 
             myTable.newRound();
 
-            myTable.call("Brandt");
+            myTable.call("Claire");
             myTable.call("Traci");
             myTable.call("Zoe");
 
             myTable.advanceRound(); // to TURN
             myTable.advanceRound(); // to RIVER
             myTable.advanceRound(); // to SHOWDOWN
+            System.out.println(myTable.getTableStateAsJSON("Claire"));
             myTable.advanceRound(); // to CLEAN_UP
 
             myTable.newRound();
 
             System.out.println("");
             System.out.println("");
-            System.out.println(myTable.getTableStateAsJSON("Brandt"));
+//            System.out.println(myTable.getTableStateAsJSON("Claire"));
         }
         catch (Exception e) {
             System.out.println(e);

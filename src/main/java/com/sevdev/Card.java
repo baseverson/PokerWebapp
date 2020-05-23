@@ -68,6 +68,13 @@ public class Card implements Comparable {
     public String getRank() { return rank; }
     public Integer getNumberRank() { return numberRank; }
 
+    /**
+     * Compare this card's rank against another card.
+     *
+     * @param compareCard - Card to compare this card against.
+     *
+     * @return Difference in rank (positive if this card is greater, negative if smaller). Zero if the ranks are equal.
+     */
     @Override
     public int compareTo(Object compareCard) {
         return this.numberRank - ((Card)compareCard).getNumberRank();
