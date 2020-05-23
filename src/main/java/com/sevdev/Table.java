@@ -575,7 +575,7 @@ public class Table {
 
         try {
             // Award the pot to the winner
-            determineWinner();
+            //determineWinner();
 
             // Make sure the winning seat number is valid and has a player in it
             if (0 < winningSeat && winningSeat < numSeats && seats[winningSeat-1].getPlayer() != null) {
@@ -787,7 +787,6 @@ public class Table {
             case RIVER:
                 roundState = SHOWDOWN;
                 currentAction = 0;
-                // TODO: Declare and display winner
                 determineWinner();
                 break;
             case SHOWDOWN:

@@ -1,7 +1,10 @@
 var tableInfo = null;
 var ws = null;
-var serverAddress = "sevdev.ddns.net:8076/Poker_alpha";
-var wsAddress = "ws://" + serverAddress + "/PokerWebSocket";
+//var serverAddress = "sevdev.ddns.net:8076/Poker";
+var fullpath = window.location.pathname;
+var path = fullpath.split("/");
+var serverAddress = window.location.host + "/" + path[1] + "/";
+var wsAddress = "ws://" + serverAddress + "PokerWebSocket";
 
 /**********************************************************************************************************
  * General functions
@@ -150,7 +153,7 @@ function updatePlayerInfo() {
         }
     };
 
-    xhttp.open("GET", "http://" + serverAddress + "/rest/PlayerManagement/playerInfo?playerName=" + playerName, true);
+    xhttp.open("GET", "http://" + serverAddress + "rest/PlayerManagement/playerInfo?playerName=" + playerName, true);
     xhttp.setRequestHeader("Content-type", "application/json");
     xhttp.send();
 }
@@ -257,7 +260,7 @@ function createPlayer() {
         }
     };
 
-    xhttp.open("POST", "http://" + serverAddress + "/rest/PlayerManagement/createPlayer?playerName=" + playerName, true);
+    xhttp.open("POST", "http://" + serverAddress + "rest/PlayerManagement/createPlayer?playerName=" + playerName, true);
     xhttp.setRequestHeader("Content-type", "application/json");
     xhttp.send();
 }
@@ -310,7 +313,7 @@ function login() {
         }
     };
 
-    xhttp.open("POST", "http://" + serverAddress + "/rest/PlayerManagement/login?playerName=" + playerName, true);
+    xhttp.open("POST", "http://" + serverAddress + "rest/PlayerManagement/login?playerName=" + playerName, true);
     xhttp.setRequestHeader("Content-type", "application/json");
     xhttp.send();
 }
@@ -346,7 +349,7 @@ function logout() {
             }
         };
 
-        xhttp.open("POST", "http://" + serverAddress + "/rest/PlayerManagement/logout?playerName=" + getPlayerName(), true);
+        xhttp.open("POST", "http://" + serverAddress + "rest/PlayerManagement/logout?playerName=" + getPlayerName(), true);
         xhttp.setRequestHeader("Content-type", "application/json");
         xhttp.send();
     }
@@ -378,7 +381,7 @@ function buyIn() {
         }
     };
 
-    xhttp.open("POST", "http://" + serverAddress + "/rest/PlayerManagement/buyIn?playerName=" + playerName + "&buyInAmount=" + buyInAmount, true);
+    xhttp.open("POST", "http://" + serverAddress + "rest/PlayerManagement/buyIn?playerName=" + playerName + "&buyInAmount=" + buyInAmount, true);
     xhttp.setRequestHeader("Content-type", "application/json");
     xhttp.send();
 }
@@ -406,7 +409,7 @@ function sitDown(seatNum) {
         }
     };
 
-    xhttp.open("POST", "http://" + serverAddress + "/rest/Table/sitDown?playerName=" + getPlayerName() + "&seatNum=" + seatNum, true);
+    xhttp.open("POST", "http://" + serverAddress + "rest/Table/sitDown?playerName=" + getPlayerName() + "&seatNum=" + seatNum, true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
 }
@@ -423,7 +426,7 @@ function leaveTable() {
         }
     };
 
-    xhttp.open("POST", "http://" + serverAddress + "/rest/Table/leaveTable?playerName=" + getPlayerName, true);
+    xhttp.open("POST", "http://" + serverAddress + "rest/Table/leaveTable?playerName=" + getPlayerName, true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
 }
@@ -443,7 +446,7 @@ function fold() {
         }
     };
 
-    xhttp.open("POST", "http://" + serverAddress + "/rest/Table/fold?playerName=" + getPlayerName(), true);
+    xhttp.open("POST", "http://" + serverAddress + "rest/Table/fold?playerName=" + getPlayerName(), true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
 }
@@ -463,7 +466,7 @@ function placeBet(betAmount) {
         }
     };
 
-    xhttp.open("POST", "http://" + serverAddress + "/rest/Table/bet?playerName=" + getPlayerName() + "&betAmount=" + betAmount, true);
+    xhttp.open("POST", "http://" + serverAddress + "rest/Table/bet?playerName=" + getPlayerName() + "&betAmount=" + betAmount, true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
 }
@@ -522,7 +525,7 @@ function check() {
         }
     };
 
-    xhttp.open("POST", "http://" + serverAddress + "/rest/Table/check?playerName=" + getPlayerName(), true);
+    xhttp.open("POST", "http://" + serverAddress + "rest/Table/check?playerName=" + getPlayerName(), true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
 }
@@ -542,7 +545,7 @@ function call() {
         }
     };
 
-    xhttp.open("POST", "http://" + serverAddress + "/rest/Table/call?playerName=" + getPlayerName(), true);
+    xhttp.open("POST", "http://" + serverAddress + "rest/Table/call?playerName=" + getPlayerName(), true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
 }
@@ -562,7 +565,7 @@ function allin() {
         }
     };
 
-    xhttp.open("POST", "http://" + serverAddress + "/rest/Table/allIn?playerName=" + getPlayerName(), true);
+    xhttp.open("POST", "http://" + serverAddress + "rest/Table/allIn?playerName=" + getPlayerName(), true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
 }
@@ -608,7 +611,7 @@ function getTableInfo() {
             window.alert("Unable to update the state of the table.");
         }
     };
-    xhttp.open("GET", "http://" + serverAddress + "/rest/Table/getTableState?playerName=" + playerName, true);
+    xhttp.open("GET", "http://" + serverAddress + "rest/Table/getTableState?playerName=" + playerName, true);
     xhttp.setRequestHeader("Content-type", "application/json");
     xhttp.send();
 }

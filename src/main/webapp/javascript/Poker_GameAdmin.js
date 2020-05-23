@@ -1,4 +1,7 @@
-var serverAddress = "sevdev.ddns.net:8076/Poker_alpha";
+//var serverAddress = "sevdev.ddns.net:8076/Poker_alpha";
+var fullpath = window.location.pathname;
+var path = fullpath.split("/");
+var serverAddress = window.location.host + "/" + path[1] + "/";
 var serverPath = "rest/GameAdmin"
 /**
   * Admin function - reset and start a new game.
@@ -12,8 +15,7 @@ function admin_newGame() {
         }
     };
 
-    //xhttp.open("GET", "http://" + serverAddress + "/" + serverPath + "/newRound", true);
-    xhttp.open("GET", "http://" + serverAddress + "/rest/GameAdmin/newRound", true);
+    xhttp.open("GET", "http://" + serverAddress + "rest/GameAdmin/newRound", true);
     xhttp.setRequestHeader("Content-type", "text/plain");
     xhttp.send();
 }
@@ -30,7 +32,7 @@ function admin_advanceRound() {
         }
     };
 
-    xhttp.open("GET", "http://" + serverAddress + "/rest/GameAdmin/advanceRound", true);
+    xhttp.open("GET", "http://" + serverAddress + "rest/GameAdmin/advanceRound", true);
     xhttp.setRequestHeader("Content-type", "text/plain");
     xhttp.send();
 }
@@ -47,7 +49,7 @@ function admin_advanceAction() {
         }
     };
 
-    xhttp.open("GET", "http://" + serverAddress + "/rest/GameAdmin/advanceAction", true);
+    xhttp.open("GET", "http://" + serverAddress + "rest/GameAdmin/advanceAction", true);
     xhttp.setRequestHeader("Content-type", "text/plain");
     xhttp.send();
 }
@@ -67,7 +69,7 @@ function admin_setWinner() {
         }
     };
 
-    xhttp.open("POST", "http://" + serverAddress + "/rest/GameAdmin/setWinningSeatNum?seatNum=" + winningSeatNum, true);
+    xhttp.open("POST", "http://" + serverAddress + "rest/GameAdmin/setWinningSeatNum?seatNum=" + winningSeatNum, true);
     xhttp.setRequestHeader("Content-type", "text/plain");
     xhttp.send();
 }
