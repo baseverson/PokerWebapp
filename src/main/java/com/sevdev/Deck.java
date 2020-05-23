@@ -7,8 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Deck {
 
-    private String[] suits = {"spades", "diamonds", "clubs", "hearts"};
-    private String[] ranks = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
+//    private String[] suits = {"spades", "diamonds", "clubs", "hearts"};
+//    private String[] ranks = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
 
     private Stack<Card> cardStack;
 
@@ -20,8 +20,8 @@ public class Deck {
     public void shuffle() {
         cardStack = new Stack<Card>();
 
-        for (String suit : suits) {
-            for (String rank : ranks) {
+        for (String suit : Card.suits) {
+            for (String rank : Card.ranks) {
                 cardStack.push(new Card(suit, rank));
             }
         }

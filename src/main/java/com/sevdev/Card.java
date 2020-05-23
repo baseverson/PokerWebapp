@@ -2,6 +2,10 @@ package com.sevdev;
 
 public class Card implements Comparable {
 
+    public static final String[] suits = {"spades", "diamonds", "clubs", "hearts"};
+    public static final String[] ranks = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
+    public static final Integer[] rankNums = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
+
     public Boolean hidden;
     private String suit;
     private String rank;
@@ -14,37 +18,37 @@ public class Card implements Comparable {
      * @param newRank - card rank
      */
     public Card(String newSuit, String newRank) {
-       hidden = true;
-       suit = newSuit;
-       rank = newRank;
+       this.hidden = true;
+       this.suit = newSuit;
+       this.rank = newRank;
 
        switch (rank) {
            case "2":
-               numberRank = 2; break;
+               this.numberRank = 2; break;
            case "3":
-               numberRank = 3; break;
+               this.numberRank = 3; break;
            case "4":
-               numberRank = 4; break;
+               this.numberRank = 4; break;
            case "5":
-               numberRank = 5; break;
+               this.numberRank = 5; break;
            case "6":
-               numberRank = 6; break;
+               this.numberRank = 6; break;
            case "7":
-               numberRank = 7; break;
+               this.numberRank = 7; break;
            case "8":
-               numberRank = 8; break;
+               this.numberRank = 8; break;
            case "9":
-               numberRank = 9; break;
+               this.numberRank = 9; break;
            case "10":
-               numberRank = 10; break;
+               this.numberRank = 10; break;
            case "J":
-               numberRank = 11; break;
+               this.numberRank = 11; break;
            case "Q":
-               numberRank = 12; break;
+               this.numberRank = 12; break;
            case "K":
-               numberRank = 13; break;
+               this.numberRank = 13; break;
            case "A":
-               numberRank = 14; break;
+               this.numberRank = 14; break;
        }
     }
 

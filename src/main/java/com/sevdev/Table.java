@@ -37,6 +37,7 @@ public class Table {
     private Integer bigBlindPosition = 0;
     private Integer currentAction = 0;
     private Integer winningSeat = 0;
+    private HandType winningHand = HandType.UNDEFINED;
     private RoundState roundState = RoundState.UNDEFINED;
     private Card board[];
     private Seat seats[];
@@ -123,6 +124,7 @@ public class Table {
         tableState.setBigBlindPosition(bigBlindPosition);
         tableState.setCurrentAction(currentAction);
         tableState.setWinningSeat(winningSeat);
+        tableState.setWinningHand(winningHand);
         tableState.setRoundState(roundState);
         tableState.setBoard(board);
         tableState.setSeats(seats);
@@ -269,6 +271,7 @@ public class Table {
         // If all players but one have folded, end the game.  The single remaining player is the winner.
         if (getPlayersInHand() == 1) {
             finishRound();
+            determineWinner();
             finishGame();
         }
         else if (actionOnPlayer(playerName)) {
@@ -513,6 +516,7 @@ public class Table {
                 if (seats[i].getInHand()) {
                     // This is the player still in the hand. Declare him the winner.
                     winningSeat = i+1;
+                    winningHand = HandType.WIN_BY_FOLD;
                     return;
                 }
             }

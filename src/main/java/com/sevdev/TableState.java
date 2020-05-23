@@ -19,6 +19,7 @@ public class TableState {
     private Integer bigBlindPosition = 0;
     private Integer currentAction = 0;
     private Integer winningSeat = 0;
+    private HandType winningHand = HandType.UNDEFINED;
     private RoundState roundState = RoundState.UNDEFINED;
     private Card board[];
     private Seat seats[];
@@ -36,6 +37,7 @@ public class TableState {
     public Integer getBigBlindPosition() { return bigBlindPosition; }
     public Integer getCurrentAction() { return currentAction; }
     public Integer getWinningSeat() { return winningSeat; }
+    public HandType getWinningHand() { return winningHand; }
     public RoundState getRoundState() { return roundState; }
     public Card[] getBoard() { return board; }
     public Seat[] getSeats() { return seats; }
@@ -53,6 +55,7 @@ public class TableState {
     public void setBigBlindPosition(Integer newBigBlindPosition) { bigBlindPosition = newBigBlindPosition.intValue(); }
     public void setCurrentAction(Integer newCurrentAction) { currentAction = newCurrentAction.intValue(); }
     public void setWinningSeat(Integer newWinningSeat) { winningSeat = newWinningSeat.intValue(); }
+    public void setWinningHand(HandType newWinningHand) { winningHand = newWinningHand; }
     public void setRoundState(RoundState newRoundState) { roundState = newRoundState; }
 
     /**
@@ -95,7 +98,7 @@ public class TableState {
                 break;
 
             case TURN:
-                // Create Flop and Turn content w/ rank/suit for first 3 cards, empty suit/rank for the rest.
+                // Create Flop and Turn content w/ rank/suit for first 4 cards, empty suit/rank for the rest.
                 for (int i=0; i<4; i++) {
                     board[i] = new Card(newBoard[i].getSuit(), newBoard[i].getRank());
                     board[i].hidden = false;
@@ -108,7 +111,7 @@ public class TableState {
 
             case RIVER:
             case SHOWDOWN:
-                // Create Flop and Turn content w/ rank/suit for first 3 cards, empty suit/rank for the rest.
+                // Create board content for all cards
                 for (int i=0; i<5; i++) {
                     board[i] = new Card(newBoard[i].getSuit(), newBoard[i].getRank());
                     board[i].hidden = false;

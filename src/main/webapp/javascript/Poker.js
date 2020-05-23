@@ -776,12 +776,12 @@ function getSeatSpecialInfo(seatNum) {
 
     // If this seat is the small blind, display the small blind button.
     if (tableInfo.smallBlindPosition == seatNum+1) {
-        outputHTML += "<img src='graphics/SmallBlind.png' alt='Dealer' width='50' height='50'>";
+        outputHTML += "<img src='graphics/SmallBlind.png' alt='Small Blind' width='50' height='50'>";
     }
 
     // If this seat is the big blind, display the big blind button.
     if (tableInfo.bigBlindPosition == seatNum+1) {
-        outputHTML += "<img src='graphics/BigBlind.png' alt='Dealer' width='50' height='50'>";
+        outputHTML += "<img src='graphics/BigBlind.png' alt='Big Blind' width='50' height='50'>";
     }
 
     // Check to see if there is player in this seat.
@@ -804,12 +804,17 @@ function getSeatSpecialInfo(seatNum) {
   * Produces HTML for the fourth column (action inputs) of a single seat as designated by the seatNum param passed in.
   */
 function getSeatActionInputs(seatNum) {
-    // If the round state is showdown, do nothing.  Players can take no more action.
-    if (tableInfo.roundState == "SHOWDOWN") {
-        return "";
-    }
-
     var outputHTML = "<td>";
+
+    // If the round state is showdown, do nothing.  Players can take no more action.
+    if (tableInfo.roundState == "SHOWDOWN" || tableInfo.roundState == "CLEAN_UP") {
+        // If we are in the showdown and a winner is specified, show the winner badge
+        if (tableInfo.winningSeat == seatNum+1) {
+            outputHTML += "<img src='graphics/winner.jpg' alt='Winner' width='80' height='80'>";
+        }
+        outputHTML += "</td>";
+        return outputHTML;
+    }
 
     // Check to see if this seat is in the hand and All In. If so, display the All In button and return.
     // Don't show any other action buttons.
