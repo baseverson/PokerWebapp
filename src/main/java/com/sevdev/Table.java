@@ -500,12 +500,29 @@ public class Table {
         int playersInHand = 0;
 
         // Loop through all the seats and add up the players in the hand.
-        for (int i=0; i<numSeats; i++) {
-            if (seats[i] != null && seats[i].getInHand()) {
+        for (Seat seat : seats) {
+            if (seat != null && seat.getInHand()) {
                 playersInHand++;
             }
         }
         return playersInHand;
+    }
+
+    /**
+     * Find the number of players in the hand that are not all in.
+     *
+     * @return number of player currently in the hand that are not all in.
+     */
+    public Integer getPlayersInHandNotAllIn() {
+        int playersInHandNotAllIn = 0;
+
+        // Loop through all the seats and add up the players in the hand and not all in.
+        for (Seat seat : seats) {
+            if (seat != null && seat.getInHand() == true && seat.getIsAllIn() == false) {
+                playersInHandNotAllIn++;
+            }
+        }
+        return playersInHandNotAllIn;
     }
 
     /**
@@ -701,28 +718,54 @@ public class Table {
      */
     public void advanceAction() {
         try {
-            // TODO: handle the action rotation accounting for all in players
+            // Check to make sure there are at least 2 players still in the hand and not all in.
+            // Otherwise, advance the round.
+            //if (getPlayersInHandNotAllIn() <= 1) {
+            //    advanceRound();
+            //    return;
+            //}
+
             //int newAction = findNextPlayerNotAllIn(currentAction);
-            int newAction = findNextPlayer(currentAction);
 
             // No players that are not all in were found, so move on to the next round.
-            if (newAction == 0) {
-                advanceRound();
-            }
+            //if (newAction == 0) {
+            //    advanceRound();
+            //}
 
-            if (newAction == currentBetPosition) {
-                // Special case for pre-flop, if the big blind bet was called all the way around, then the
-                // big blind position has an option to raise.
-                if (roundState == PRE_FLOP && newAction == bigBlindPosition && currentBet == bigBlind) {
-                    currentBetPosition = findNextPlayerNotAllIn(currentBetPosition);
-                    currentAction = newAction;
+            //int newAction = findNextPlayer(currentAction);
+
+            // Start out with the currentAction and move on from there.
+            int newAction = currentAction;
+
+            while (true) {
+                // Try the next player
+                newAction = findNextPlayer(newAction);
+
+                if (newAction == currentBetPosition) {
+                    // Special case for pre-flop, if the big blind bet was called all the way around, then the
+                    // big blind position has an option to raise.
+                    if (roundState == PRE_FLOP && newAction == bigBlindPosition && currentBet == bigBlind) {
+                        // Set currentBetPosition to the next player so that the Big Blind has a chance to act, but
+                        // if he just checks, the next action move will advance to the next round.
+                        currentBetPosition = findNextPlayerNotAllIn(currentBetPosition);
+                        currentAction = newAction;
+                        break;
+                    }
+                    else {
+                        // We've come around to the currentBetPosition (the seat that bet/raised last). Betting is
+                        // done. Move to the next round.
+                        advanceRound();
+                        break;
+                    }
                 }
-                else {
-                    advanceRound();
+                else if (seats[newAction-1].getIsAllIn() != true) {
+                        // Check to see if the next player is not already all in. If not, this seat is the new action.
+                        currentAction = newAction;
+                        break;
                 }
-            }
-            else {
-                currentAction = newAction;
+
+                // If we have not completed the round and have not found a player that can act (not all in),
+                // then loop again to find the next player.
             }
         }
         catch (Exception e) {
@@ -760,12 +803,18 @@ public class Table {
             finishRound();
 
             // Set the action to the first player after the dealer that is not All In
-            // TODO: handle case of all in players
-            //currentAction = findNextPlayerNotAllIn(dealerPosition);
-            currentAction = findNextPlayer(dealerPosition);
+            if (getPlayersInHandNotAllIn() <= 1) {
+                // One or less players left in the hand that are not all in.  No player action to be taken.
+                // Set the action to 0 to tell the UI that no one can act.
+                currentAction = 0;
+            }
+            else {
+                currentAction = findNextPlayerNotAllIn(dealerPosition);
+                //currentAction = findNextPlayer(dealerPosition);
 
-            // Set the current bet position to the first action
-            currentBetPosition = currentAction;
+                // Set the current bet position to the first action
+                currentBetPosition = currentAction;
+            }
         }
         catch (Exception e) {
             System.out.println("Unable to set action position. Dealer position passed into findNextPlayer() is invalid.");
@@ -922,7 +971,12 @@ public class Table {
             myTable.call("Traci");
             myTable.call("Zoe");
 
-            myTable.advanceRound(); // to TURN
+            //myTable.advanceRound(); // to TURN
+
+            myTable.allIn("Traci");
+            myTable.call("Zoe");
+            myTable.call("Claire");
+
             myTable.advanceRound(); // to RIVER
             myTable.advanceRound(); // to SHOWDOWN
             System.out.println(myTable.getTableStateAsJSON("Claire"));
