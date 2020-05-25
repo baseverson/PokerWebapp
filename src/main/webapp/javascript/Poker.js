@@ -168,25 +168,27 @@ function updateUserFunctions() {
     // Check to see if the player name is null.  If not, the user is logged in.
     if (playerName != "" && getPlayerInfo() != null) {
         // Player logged in.
-        outputHTML += "<table><tr>";
+        outputHTML += "<table>";
 
         // Display the player name and logout button.
-        outputHTML += "<td>"
-        outputHTML += "Player Name: <div style='color:blue'><b>" + playerName + "</b></div><br>";
-        outputHTML += "<button type='button' onclick='logout()'>Logout</button>";
-        outputHTML += "</td>"
+        outputHTML += "<tr>"
+        outputHTML += "<td>Player Name: <div style='color:lightgreen'><b>" + playerName + "</b></div></td>";
+        outputHTML += "<td><button type='button' onclick='logout()'>Logout</button></td>";
+        outputHTML += "</tr>"
 
         // Display the total buy in amount
-        outputHTML += "<td>";
-        outputHTML += "Total Buy-In amount: " + getPlayerInfo().buyin;
-        outputHTML += "</td>";
+        outputHTML += "<tr><td>";
+        outputHTML += "<br><br>"
+        outputHTML += "Total Buy-In amount: <div style='color:lightgreen'>     " + getPlayerInfo().buyin + "</div>";
+        outputHTML += "</td></tr>";
 
         // Display the current stack size
-        outputHTML += "<td>";
-        outputHTML += "Stack: " + getPlayerInfo().stack;
-        outputHTML += "</td>";
+        outputHTML += "<tr><td>";
+        outputHTML += "<br>"
+        outputHTML += "Stack: <div style='color:lightgreen'>     " + getPlayerInfo().stack + "</div>";
+        outputHTML += "</td></tr>";
 
-        outputHTML += "</tr></table>";
+        outputHTML += "</table>";
         outputHTML += "<br><br>";
 
         // Display the Buy In controls
@@ -426,7 +428,7 @@ function leaveTable() {
         }
     };
 
-    xhttp.open("POST", "http://" + serverAddress + "rest/Table/leaveTable?playerName=" + getPlayerName, true);
+    xhttp.open("POST", "http://" + serverAddress + "rest/Table/leaveTable?playerName=" + getPlayerName(), true);
     xhttp.setRequestHeader("Content-type", "test/plain");
     xhttp.send();
 }
@@ -685,10 +687,10 @@ function getSingleSeatDisplay(seatNum) {
 
     // Start of seat row. Each seat row contains 3 cells (columns).
     if (tableInfo.currentAction == seatNum+1) {
-        outputHTML += "<tr style='background-color:#FFC2B3'>";
+        outputHTML += "<tr style='background-color:#FFC2B3;color:black'>";
     }
     else {
-        outputHTML += "<tr style='background-color:#FFFFFF'>";
+        outputHTML += "<tr style='background-color:#FFFFFF;color:black'>";
     }
 
     outputHTML += getSeatPlayerInfo(seatNum);

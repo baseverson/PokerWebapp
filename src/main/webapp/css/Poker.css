@@ -1,3 +1,22 @@
 body {
     font-family: Arial, sans-serif;
+    color: white;
+
+    background-image: url('../graphics/background/black_big_texture.jpg');
+
 }
+
+h2 {
+    font-family: Arial, sans-serif;
+    color: white;
+}
+
+h3 {
+    font-family: Arial, sans-serif;
+    color: white;
+}
+
+//table {
+//    font-family: Arial, sans-serif;
+//    color: black;
+//}
