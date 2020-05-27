@@ -65,7 +65,7 @@ public class Table {
 
         // TODO: For now, run intialize in the construtor. Later we may support multiple tables and the creation
         // of new tables.
-        initialize(12, 2);
+        initialize(8, 2);
     }
 
     /**
@@ -280,6 +280,18 @@ public class Table {
         else if (actionOnPlayer(playerName)) {
             // Move on to the next player.
             advanceAction();
+        }
+
+        // Check to see if this seat is currently the bet position.  Why would anyone fold here and not check?
+        if (currentBetPosition == getPlayerSeatNum(playerName)) {
+            // Move the bet position to the next player in the hand
+            try {
+                currentBetPosition = findNextPlayerNotAllIn(currentBetPosition);
+            }
+            catch (Exception e) {
+                System.out.println("Unexpected exception caught");
+                System.out.println(e.getMessage());
+            }
         }
 
         // Notify all players that the table state has changes and needs to be refreshed.
@@ -685,12 +697,12 @@ public class Table {
                 // If there is a player in this seat and they are in the hand, deal a card
                 if (seatPtr.getPlayer() != null &&
                     seatPtr.getInHand().equals(true)) {
-                    seatPtr.addCard(i, deck.getCard());
+                    seatPtr.addCard(deck.getCard());
                 }
                 seatPtr = seatPtr.getNext();
             }
             // Don't forget to deal a card to the dealer
-            seatPtr.addCard(i, deck.getCard());
+            seatPtr.addCard(deck.getCard());
         }
 
         // Deal board cards

@@ -2,6 +2,9 @@ package com.sevdev;
 
 import com.sevdev.RoundState.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.sevdev.RoundState.*;
 
 public class TableState {
@@ -137,7 +140,6 @@ public class TableState {
             // If there is a player in this seat, copy the player info
             if (newSeats[i].getPlayer() != null) {
                 // Copy over the player info - name and stack size
-                // TODO
                 seats[i].setPlayer(newSeats[i].getPlayer());
 
                 // Copy over the in hand status
@@ -149,6 +151,42 @@ public class TableState {
                 // Copy over the player bet
                 seats[i].setPlayerBet(newSeats[i].getPlayerBet());
 
+                // Only show the card info if this is the seat for the current player
+                List<Card> displayCards = new ArrayList<Card>();
+                Card displayCard;
+
+                List<Card> newCards = newSeats[i].getCards();
+                //if (newCards[0]!=null && newCards[1]!= null) {
+                if (newCards.size() == 2) {
+                    if (seats[i].getPlayer().getPlayerName().equals(playerName) || roundState == SHOWDOWN) {
+                        displayCard = new Card(newCards.get(0).getSuit(), newCards.get(0).getRank());
+                        displayCard.hidden = false;
+                        seats[i].addCard(displayCard);
+
+                        displayCard = new Card(newCards.get(1).getSuit(), newCards.get(1).getRank());
+                        displayCard.hidden = false;
+                        seats[i].addCard(displayCard);
+                    }
+                    else {
+                        displayCard = new Card("", "");
+                        displayCard.hidden = true;
+                        seats[i].addCard(displayCard);
+
+                        displayCard = new Card("", "");
+                        displayCard.hidden = true;
+                        seats[i].addCard(displayCard);
+                    }
+                }
+                else {
+                    // Add 2 null cards to show there are no cards
+                    seats[i].addCard(null);
+                    seats[i].addCard(null);
+                }
+                //for (int j=0; j<displayCards.length; j++) {
+                //    seats[i].addCard(j, displayCards[j]);
+                //}
+
+/*
                 // Only show the card info if this is the seat for the current player
                 Card[] displayCards = new Card[2];
 
@@ -172,6 +210,7 @@ public class TableState {
                 for (int j=0; j<displayCards.length; j++) {
                     seats[i].addCard(j, displayCards[j]);
                 }
+*/
             }
         }
     }

@@ -1,12 +1,16 @@
 package com.sevdev;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Seat {
     private Integer seatNum;
     private Boolean inHand;
     private Boolean isAllIn;
     private Seat next;
     private Player player;
-    private Card[] cards;
+    //private Card[] cards;
+    private List<Card> cards;
     private Integer playerBet=0;
 
     public Integer getSeatNum() { return this.seatNum; }
@@ -27,16 +31,22 @@ public class Seat {
         seatNum = newSeatNum;
         inHand = false;
         isAllIn = false;
-        cards = new Card[2];
+        //cards = new Card[2];
+        cards = new ArrayList<Card>();
     }
 
     public void clearCards() {
-        cards[0] = null;
-        cards[1] = null;
+        cards.clear();
+        //cards[0] = null;
+        //cards[1] = null;
     }
 
-    public void addCard(int index, Card card) {
-        cards[index] = card;
+    //public void addCard(int index, Card card) {
+    public void addCard(Card card) {
+        cards.add(card);
+        //cards[index] = card;
     }
-    public Card[] getCards() { return cards; }
+
+    //public Card[] getCards() { return cards; }
+    public List<Card> getCards() { return cards; }
 }

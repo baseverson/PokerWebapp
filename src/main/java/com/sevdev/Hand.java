@@ -43,13 +43,24 @@ public class Hand implements Comparable {
     }
 
     /**
-     * Add an array of cards to the list
+     * Add an array of cards to the hand
      *
      * @param cards - array of cards to add
      */
     public void addCards(Card[] cards) {
         for (Card card : cards) {
             cardList.add(new Card(card));
+        }
+    }
+
+    /**
+     * Add a List of cards to the hand
+     *
+     * @param cards - List of cards to add
+     */
+    public void addCards(List<Card> cards) {
+        for (Card card : cards) {
+            cardList.add(card);
         }
     }
 
