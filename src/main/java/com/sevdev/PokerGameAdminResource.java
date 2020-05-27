@@ -86,6 +86,7 @@ public class PokerGameAdminResource {
      *
      * @return HTTP Response indicating successful setting of the winner
      */
+/*
     @POST
     @Path("setWinningSeatNum")
     public Response setWinningSeatNum(@QueryParam("seatNum") Integer seatNum) {
@@ -98,7 +99,7 @@ public class PokerGameAdminResource {
                 .entity("Winner set to seat #" + seatNum)
                 .build();
     }
-
+*/
 
 
     /*

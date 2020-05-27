@@ -21,12 +21,9 @@ public class TableState {
     private Integer smallBlindPosition = 0;
     private Integer bigBlindPosition = 0;
     private Integer currentAction = 0;
-    private Integer winningSeat = 0;
+    private List<Integer> winningSeats;
     private HandType winningHand = HandType.UNDEFINED;
     private RoundState roundState = RoundState.UNDEFINED;
-    // TODO remove
-    //private Card board[];
-    //private Seat seats[];
     private List<Card> board;
     private List<Seat> seats;
 
@@ -42,8 +39,7 @@ public class TableState {
     public Integer getSmallBlindPosition() { return smallBlindPosition; }
     public Integer getBigBlindPosition() { return bigBlindPosition; }
     public Integer getCurrentAction() { return currentAction; }
-    public Integer getWinningSeat() { return winningSeat; }
-    public HandType getWinningHand() { return winningHand; }
+    public List<Integer> getWinningSeats() { return winningSeats; }
     public RoundState getRoundState() { return roundState; }
     public List<Card> getBoard() { return board; }
     public List<Seat> getSeats() { return seats; }
@@ -60,8 +56,7 @@ public class TableState {
     public void setSmallBlindPosition(Integer newSmallBlindPosition) { smallBlindPosition = newSmallBlindPosition.intValue(); }
     public void setBigBlindPosition(Integer newBigBlindPosition) { bigBlindPosition = newBigBlindPosition.intValue(); }
     public void setCurrentAction(Integer newCurrentAction) { currentAction = newCurrentAction.intValue(); }
-    public void setWinningSeat(Integer newWinningSeat) { winningSeat = newWinningSeat.intValue(); }
-    public void setWinningHand(HandType newWinningHand) { winningHand = newWinningHand; }
+    public void setWinningSeats(List<Integer> newWinningSeats) { this.winningSeats = newWinningSeats; }
     public void setRoundState(RoundState newRoundState) { roundState = newRoundState; }
 
     /**
@@ -69,9 +64,6 @@ public class TableState {
      *
      * @param newBoard - board info to be copied
      */
-    // TODO remove
-    //public void setBoard(Card[] newBoard) {
-    //    board = new Card[newBoard.length];
     public void setBoard(List<Card> newBoard) {
         board = new ArrayList<Card>();
 
@@ -84,11 +76,6 @@ public class TableState {
 
             case PRE_FLOP:
                 // Create card content w/ empty suit and rank.
-                // TODO remove
-                //for (int i=0; i<board.length; i++) {
-                //    board[i] = new Card("","");
-                //    board[i].hidden = true;
-                //}
                 for (int i=0; i<newBoard.size(); i++) {
                     board.add(new Card("",""));
                     board.get(i).hidden = true;
@@ -99,22 +86,13 @@ public class TableState {
             case FLOP:
                 // Create Flop content w/ rank/suit for first 3 cards, empty suit/rank for the rest.
                 for (int i=0; i<3; i++) {
-                    // TODO remove
-                    //board[i] = new Card(newBoard[i].getSuit(), newBoard[i].getRank());
-                    //board[i].hidden = false;
                     board.add(new Card(newBoard.get(i).getSuit(), newBoard.get(i).getRank()));
                     board.get(i).hidden = false;
                 }
                 // Turn
-                // TODO remove
-                //board[3] = new Card("","");
-                //board[3].hidden = true;
                 board.add(new Card("",""));
                 board.get(3).hidden = true;
                 // Flop
-                // TODO remove
-                //board[4] = new Card("","");
-                //board[4].hidden = true;
                 board.add(new Card("",""));
                 board.get(4).hidden = true;
 
@@ -123,16 +101,10 @@ public class TableState {
             case TURN:
                 // Create Flop and Turn content w/ rank/suit for first 4 cards, empty suit/rank for the rest.
                 for (int i=0; i<4; i++) {
-                    // TODO remove
-                    //board[i] = new Card(newBoard[i].getSuit(), newBoard[i].getRank());
-                    //board[i].hidden = false;
                     board.add(new Card(newBoard.get(i).getSuit(), newBoard.get(i).getRank()));
                     board.get(i).hidden = false;
                 }
                 // Flop
-                // TODO remove
-                //board[4] = new Card("","");
-                //board[4].hidden = true;
                 board.add(new Card("",""));
                 board.get(4).hidden = true;
 
@@ -155,20 +127,13 @@ public class TableState {
      *
      * @param newSeats - seat info to copy from
      */
-    // TODO remove
-    //public void setSeats(Seat[] newSeats) {
-    //    seats = new Seat[numSeats];
     public void setSeats(List<Seat> newSeats) {
         seats = new ArrayList<Seat>();
 
         for (int i=0; i<numSeats; i++) {
-            // TODO remove
-            //seats[i] = new Seat(newSeats[i].getSeatNum().intValue());
             seats.add(new Seat(newSeats.get(i).getSeatNum()));
 
             // If there is a player in this seat, copy the player info
-            // TODO remove
-            //if (newSeats[i].getPlayer() != null) {
             if (newSeats.get(i).getPlayer() != null) {
                 // Get the seat to populate with copied data
                 Seat seat = seats.get(i);

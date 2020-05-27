@@ -10,6 +10,8 @@ public class Hand implements Comparable {
     private List<Card> cardList = new ArrayList<Card>();
     // The seat number this hand belongs to
     private Integer seatNum = 0;
+    // The amount that this hand has won
+    private Integer winnings = 0;
     // The type of hand made (enum)
     private HandType type = HandType.UNDEFINED;
     // The numerical rank value for this hand type (used for comparison)
@@ -24,6 +26,9 @@ public class Hand implements Comparable {
     public HandType getType() { return this.type; }
     public Integer getNumberRank() { return this.numberRank; }
     public List<Card> getCardList() { return this.cardList; }
+    public Integer getWinnings() { return this.winnings; }
+
+    public void incrementWinnings(int newWinnings) { this.winnings += newWinnings; }
 
     /**
      * Constructor
@@ -46,11 +51,12 @@ public class Hand implements Comparable {
      *
      * @param cards - array of cards to add
      */
-    public void addCards(Card[] cards) {
-        for (Card card : cards) {
-            cardList.add(new Card(card));
-        }
-    }
+    // TODO remove
+    //public void addCards(Card[] cards) {
+    //    for (Card card : cards) {
+    //        cardList.add(new Card(card));
+    //    }
+    //}
 
     /**
      * Add a List of cards to the hand

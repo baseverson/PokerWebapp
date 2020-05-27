@@ -6,24 +6,26 @@ import java.util.List;
 
 public class Pot {
 
+    List<Card> board;
     List<Seat> seatList = new ArrayList<Seat>();
-    List<Hand> handList = new ArrayList<Hand>();
-    Integer size;
+    List<Hand> handList;
+    Integer potSize = 0;
 
-    public Integer getSize() { return this.size; }
+    public List<Hand> getHandList() { return this.handList; }
+    public void setHandList(List<Hand> newHandList) { this.handList = newHandList; }
 
-    /**
-     * Constructor
-     */
-    public void Pot() {
+    public Integer getPotSize() {
+        return this.potSize;
+    }
 
+    public void setBoard(List<Card> newBoard) {
+        this.board = newBoard;
     }
 
     /**
      * Add a new player as eligible to win this pot.
      *
      * @param seat - seat object eligible to win this pot
-     *
      * @throws Exception seat is null
      */
     public void addSeat(Seat seat) throws Exception {
@@ -56,13 +58,6 @@ public class Pot {
      * @param addedChips - amount of chips to add to this pot.
      */
     public void incrementSize(Integer addedChips) {
-        size += addedChips;
-    }
-
-    /**
-     * Determine which of the eligible seats is/are the winner(s).  Award the chips.
-     */
-    public void awardPot() {
-        // TODO
+        potSize += addedChips;
     }
 }

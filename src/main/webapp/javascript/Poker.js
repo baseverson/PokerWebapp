@@ -814,7 +814,8 @@ function getSeatActionInputs(seatNum) {
     // If the round state is showdown, do nothing.  Players can take no more action.
     if (tableInfo.roundState == "SHOWDOWN" || tableInfo.roundState == "CLEAN_UP") {
         // If we are in the showdown and a winner is specified, show the winner badge
-        if (tableInfo.winningSeat == seatNum+1) {
+        //if (tableInfo.winningSeat == seatNum+1) {
+        if (isWinningSeat(seatNum+1)) {
             outputHTML += "<img src='graphics/winner.jpg' alt='Winner' width='80' height='80'>";
         }
         outputHTML += "</td>";
@@ -909,4 +910,10 @@ function getSeatActionInputs(seatNum) {
     return outputHTML;
 }
 
-
+function isWinningSeat(seatNum) {
+    for (i=0; i<tableInfo.winningSeats.length; i++) {
+        if (tableInfo.winningSeats[i] == seatNum) {
+            return true;
+        }
+    }
+}
