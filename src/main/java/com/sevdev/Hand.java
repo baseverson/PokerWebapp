@@ -3,7 +3,6 @@ package com.sevdev;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 public class Hand implements Comparable {
 
@@ -72,6 +71,7 @@ public class Hand implements Comparable {
     public String toString() {
         String output = "";
         switch (type) {
+            // Straight Flush, Flush, Straight, and High Card are all output the same way.
             case STRAIGHT_FLUSH:
             case FLUSH:
             case STRAIGHT:
@@ -82,6 +82,7 @@ public class Hand implements Comparable {
                 }
                 output += "}";
                 break;
+            // Quads, Trips, and One Pair are all output the same way
             case QUADS:
             case TRIPS:
             case ONE_PAIR:
@@ -93,21 +94,6 @@ public class Hand implements Comparable {
             case FULL_HOUSE:
                 output += type.toString() + " (" + multiCardRankNum1 + "'s full of " + multiCardRankNum2 + "'s)";
                 break;
-//            case FLUSH:
-//                output += type + " { ";
-//                for (Card card : handCards) {
-//                    output += card.getRank() + "(" + card.getNumberRank() + ")-" + card.getSuit() + " ";
-//                }
-//                output += "}";
-//                break;
-//                // TODO
-//                break;
-//            case STRAIGHT:
-//                // TODO
-//                break;
-//            case TRIPS:
-//                // TODO
-//                break;
             case TWO_PAIR:
                 output += type.toString() + " (" + multiCardRankNum1 + "'s and " + multiCardRankNum2 + "'s)";
                 output += ", kicker(s): ";
@@ -115,12 +101,6 @@ public class Hand implements Comparable {
                     output += card.getRank() + "(" + card.getNumberRank() + ")-" + card.getSuit() + " ";
                 }
                 break;
-//            case ONE_PAIR:
-//                // TODO
-//                break;
-//            case HIGH_CARD:
-//                // TODO
-//                break;
             case UNDEFINED:
             case WIN_BY_FOLD:
                 output += type.toString();

@@ -9,7 +9,6 @@ public class Seat {
     private Boolean isAllIn;
     private Seat next;
     private Player player;
-    //private Card[] cards;
     private List<Card> cards;
     private Integer playerBet=0;
 
@@ -31,22 +30,16 @@ public class Seat {
         seatNum = newSeatNum;
         inHand = false;
         isAllIn = false;
-        //cards = new Card[2];
         cards = new ArrayList<Card>();
     }
 
     public void clearCards() {
         cards.clear();
-        //cards[0] = null;
-        //cards[1] = null;
     }
 
-    //public void addCard(int index, Card card) {
     public void addCard(Card card) {
         cards.add(card);
-        //cards[index] = card;
     }
 
-    //public Card[] getCards() { return cards; }
     public List<Card> getCards() { return cards; }
 }

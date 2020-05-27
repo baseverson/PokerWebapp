@@ -5,7 +5,6 @@ import redis.clients.jedis.Jedis;
 
 import static java.lang.Integer.parseInt;
 import static java.lang.StrictMath.abs;
-import static java.lang.String.*;
 
 public class Player {
 
@@ -44,22 +43,7 @@ public class Player {
         }
     }
 
-    /**
-     * Copy constructor.
-     *
-     * @param playerToCopy - player object to copy
-     */
-/*
-    public Player (Player playerToCopy) {
-        this.playerName = playerToCopy.playerName;
-        this.stackSize = playerToCopy.stackSize;
-        this.totalBuyIn = playerToCopy.totalBuyIn;
-    }
-*/
-
     public String getPlayerName() { return playerName; }
-    //public Integer getStack() { return parseInt(jedis.hget(playerKey + playerName, stackKey)); }
-    //public Integer getBuyin() { return parseInt(jedis.hget(playerKey + playerName, buyinKey)); }
     public Integer getStack() { return stack.intValue(); }
     public Integer getBuyin() { return buyin.intValue(); }
 

@@ -24,8 +24,11 @@ public class TableState {
     private Integer winningSeat = 0;
     private HandType winningHand = HandType.UNDEFINED;
     private RoundState roundState = RoundState.UNDEFINED;
-    private Card board[];
-    private Seat seats[];
+    // TODO remove
+    //private Card board[];
+    //private Seat seats[];
+    private List<Card> board;
+    private List<Seat> seats;
 
     public String getPlayerName() { return playerName; }
     public Integer getTableId() { return tableId; }
@@ -42,8 +45,8 @@ public class TableState {
     public Integer getWinningSeat() { return winningSeat; }
     public HandType getWinningHand() { return winningHand; }
     public RoundState getRoundState() { return roundState; }
-    public Card[] getBoard() { return board; }
-    public Seat[] getSeats() { return seats; }
+    public List<Card> getBoard() { return board; }
+    public List<Seat> getSeats() { return seats; }
 
     public void setPlayerName(String newPlayerName) { playerName = newPlayerName; }
     public void setTableId(Integer newTableId) { tableId = newTableId.intValue(); }
@@ -66,8 +69,11 @@ public class TableState {
      *
      * @param newBoard - board info to be copied
      */
-    public void setBoard(Card[] newBoard) {
-        board = new Card[newBoard.length];
+    // TODO remove
+    //public void setBoard(Card[] newBoard) {
+    //    board = new Card[newBoard.length];
+    public void setBoard(List<Card> newBoard) {
+        board = new ArrayList<Card>();
 
         // Include board card info depending on the roundState
         switch (roundState) {
@@ -78,9 +84,14 @@ public class TableState {
 
             case PRE_FLOP:
                 // Create card content w/ empty suit and rank.
-                for (int i=0; i<board.length; i++) {
-                    board[i] = new Card("","");
-                    board[i].hidden = true;
+                // TODO remove
+                //for (int i=0; i<board.length; i++) {
+                //    board[i] = new Card("","");
+                //    board[i].hidden = true;
+                //}
+                for (int i=0; i<newBoard.size(); i++) {
+                    board.add(new Card("",""));
+                    board.get(i).hidden = true;
                 }
 
                 break;
@@ -88,27 +99,42 @@ public class TableState {
             case FLOP:
                 // Create Flop content w/ rank/suit for first 3 cards, empty suit/rank for the rest.
                 for (int i=0; i<3; i++) {
-                    board[i] = new Card(newBoard[i].getSuit(), newBoard[i].getRank());
-                    board[i].hidden = false;
+                    // TODO remove
+                    //board[i] = new Card(newBoard[i].getSuit(), newBoard[i].getRank());
+                    //board[i].hidden = false;
+                    board.add(new Card(newBoard.get(i).getSuit(), newBoard.get(i).getRank()));
+                    board.get(i).hidden = false;
                 }
                 // Turn
-                board[3] = new Card("","");
-                board[3].hidden = true;
+                // TODO remove
+                //board[3] = new Card("","");
+                //board[3].hidden = true;
+                board.add(new Card("",""));
+                board.get(3).hidden = true;
                 // Flop
-                board[4] = new Card("","");
-                board[4].hidden = true;
+                // TODO remove
+                //board[4] = new Card("","");
+                //board[4].hidden = true;
+                board.add(new Card("",""));
+                board.get(4).hidden = true;
 
                 break;
 
             case TURN:
                 // Create Flop and Turn content w/ rank/suit for first 4 cards, empty suit/rank for the rest.
                 for (int i=0; i<4; i++) {
-                    board[i] = new Card(newBoard[i].getSuit(), newBoard[i].getRank());
-                    board[i].hidden = false;
+                    // TODO remove
+                    //board[i] = new Card(newBoard[i].getSuit(), newBoard[i].getRank());
+                    //board[i].hidden = false;
+                    board.add(new Card(newBoard.get(i).getSuit(), newBoard.get(i).getRank()));
+                    board.get(i).hidden = false;
                 }
                 // Flop
-                board[4] = new Card("","");
-                board[4].hidden = true;
+                // TODO remove
+                //board[4] = new Card("","");
+                //board[4].hidden = true;
+                board.add(new Card("",""));
+                board.get(4).hidden = true;
 
                 break;
 
@@ -116,8 +142,8 @@ public class TableState {
             case SHOWDOWN:
                 // Create board content for all cards
                 for (int i=0; i<5; i++) {
-                    board[i] = new Card(newBoard[i].getSuit(), newBoard[i].getRank());
-                    board[i].hidden = false;
+                    board.add(new Card(newBoard.get(i).getSuit(), newBoard.get(i).getRank()));
+                    board.get(i).hidden = false;
                 }
 
                 break;
@@ -129,88 +155,70 @@ public class TableState {
      *
      * @param newSeats - seat info to copy from
      */
-    public void setSeats(Seat[] newSeats) {
-        System.out.println("Setting seats display for '" + playerName + "'");
-
-        seats = new Seat[numSeats];
+    // TODO remove
+    //public void setSeats(Seat[] newSeats) {
+    //    seats = new Seat[numSeats];
+    public void setSeats(List<Seat> newSeats) {
+        seats = new ArrayList<Seat>();
 
         for (int i=0; i<numSeats; i++) {
-            seats[i] = new Seat(newSeats[i].getSeatNum().intValue());
+            // TODO remove
+            //seats[i] = new Seat(newSeats[i].getSeatNum().intValue());
+            seats.add(new Seat(newSeats.get(i).getSeatNum()));
 
             // If there is a player in this seat, copy the player info
-            if (newSeats[i].getPlayer() != null) {
+            // TODO remove
+            //if (newSeats[i].getPlayer() != null) {
+            if (newSeats.get(i).getPlayer() != null) {
+                // Get the seat to populate with copied data
+                Seat seat = seats.get(i);
+
+                // Get the seat to copy data from
+                Seat newSeat = newSeats.get(i);
+
                 // Copy over the player info - name and stack size
-                seats[i].setPlayer(newSeats[i].getPlayer());
+                seat.setPlayer(newSeat.getPlayer());
 
                 // Copy over the in hand status
-                seats[i].setInHand(newSeats[i].getInHand());
+                seat.setInHand(newSeat.getInHand());
 
                 // Copy over the All In status
-                seats[i].setIsAllIn(newSeats[i].getIsAllIn());
+                seat.setIsAllIn(newSeat.getIsAllIn());
 
                 // Copy over the player bet
-                seats[i].setPlayerBet(newSeats[i].getPlayerBet());
+                seat.setPlayerBet(newSeat.getPlayerBet());
 
                 // Only show the card info if this is the seat for the current player
                 List<Card> displayCards = new ArrayList<Card>();
                 Card displayCard;
 
-                List<Card> newCards = newSeats[i].getCards();
+                List<Card> newCards = newSeat.getCards();
                 //if (newCards[0]!=null && newCards[1]!= null) {
                 if (newCards.size() == 2) {
-                    if (seats[i].getPlayer().getPlayerName().equals(playerName) || roundState == SHOWDOWN) {
+                    if (seat.getPlayer().getPlayerName().equals(playerName) || roundState == SHOWDOWN) {
                         displayCard = new Card(newCards.get(0).getSuit(), newCards.get(0).getRank());
                         displayCard.hidden = false;
-                        seats[i].addCard(displayCard);
+                        seat.addCard(displayCard);
 
                         displayCard = new Card(newCards.get(1).getSuit(), newCards.get(1).getRank());
                         displayCard.hidden = false;
-                        seats[i].addCard(displayCard);
+                        seat.addCard(displayCard);
                     }
                     else {
                         displayCard = new Card("", "");
                         displayCard.hidden = true;
-                        seats[i].addCard(displayCard);
+                        seat.addCard(displayCard);
 
                         displayCard = new Card("", "");
                         displayCard.hidden = true;
-                        seats[i].addCard(displayCard);
+                        seat.addCard(displayCard);
                     }
                 }
                 else {
                     // Add 2 null cards to show there are no cards
-                    seats[i].addCard(null);
-                    seats[i].addCard(null);
+                    seat.addCard(null);
+                    seat.addCard(null);
                 }
-                //for (int j=0; j<displayCards.length; j++) {
-                //    seats[i].addCard(j, displayCards[j]);
-                //}
-
-/*
-                // Only show the card info if this is the seat for the current player
-                Card[] displayCards = new Card[2];
-
-                Card[] newCards = newSeats[i].getCards();
-                if (newCards[0]!=null && newCards[1]!= null) {
-                    System.out.println(seats[i].getPlayer().getPlayerName() + " ?= " + playerName);
-                    if (seats[i].getPlayer().getPlayerName().equals(playerName) ||
-                        roundState == SHOWDOWN) {
-                        displayCards[0] = new Card(newCards[0].getSuit(), newCards[0].getRank());
-                        displayCards[0].hidden = false;
-                        displayCards[1] = new Card(newCards[1].getSuit(), newCards[1].getRank());
-                        displayCards[1].hidden = false;
-                    }
-                    else {
-                        displayCards[0] = new Card("", "");
-                        displayCards[0].hidden = true;
-                        displayCards[1] = new Card("", "");
-                        displayCards[1].hidden = true;
-                    }
-                }
-                for (int j=0; j<displayCards.length; j++) {
-                    seats[i].addCard(j, displayCards[j]);
-                }
-*/
             }
         }
     }
