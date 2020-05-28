@@ -128,12 +128,13 @@ public class Table {
         tableState.setBigBlind(bigBlind);
 
         // TODO: handle table state updates for multiple pots
-        if (potList.size() < 1) {
-            tableState.setPot(0);
-        }
-        else {
-            tableState.setPot(potList.get(0).getPotSize());
-        }
+//        if (potList.size() < 1) {
+//            tableState.setPot(0);
+//        }
+//        else {
+//            tableState.setPot(potList.get(0).getPotSize());
+//        }
+        tableState.setPotList(potList);
 
         tableState.setCurrentBet(currentBet);
         tableState.setCurrentBetPosition(currentBetPosition);

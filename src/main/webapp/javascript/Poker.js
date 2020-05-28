@@ -626,8 +626,8 @@ function updateTableDisplay() {
     document.getElementById("tableId").innerHTML = "Table Id: " + tableInfo.tableId;
 
     updateRoundStateDisplay();
-    updatePotDisplay();
     updateBoardDisplay();
+    updatePotDisplay();
     updateSeatDisplay();
 }
 
@@ -639,10 +639,25 @@ function updateRoundStateDisplay() {
 }
 
 /*
- * Updates the pot in the page based on the tableInfo passed in.
+ * Updates the pot info in the page based on the tableInfo passed in.
  */
 function updatePotDisplay() {
-    document.getElementById("pot").innerHTML = tableInfo.pot;
+    var outputHTML = "";
+    outputHTML += "<table><tr>";
+
+    //for (var i=0; i<tableInfo.potList.length; i++) {
+    //    outputHTML += "<td style='color:white'>Pot: <div style='color:lightblue'><b>" + tableInfo.potList[i].potSize + "</b></div><br>";
+    for (var potNum in tableInfo.potList) {
+        outputHTML += "<td style='color:white'>Pot: <div style='color:lightblue'><b>" + tableInfo.potList[potNum].potSize + "</b></div><br>";
+
+        for (var playerCount in tableInfo.potList[potNum].playerNameList) {
+            outputHTML += tableInfo.potList[potNum].playerNameList[playerCount] + "<br>";
+        }
+        outputHTML += "</td>";
+    }
+
+    outputHTML += "</tr></table>";
+    document.getElementById("potInfo").innerHTML = outputHTML;
 }
 
 /*

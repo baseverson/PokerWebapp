@@ -14,7 +14,6 @@ public class TableState {
     private Integer numSeats = 0;
     private Integer numPlayers = 0;
     private Integer bigBlind = 0;
-    private Integer pot = 0;
     private Integer currentBet = 0;
     private Integer currentBetPosition = 0;
     private Integer dealerPosition = 0;
@@ -26,13 +25,13 @@ public class TableState {
     private RoundState roundState = RoundState.UNDEFINED;
     private List<Card> board;
     private List<Seat> seats;
+    private List<Pot> potList;
 
     public String getPlayerName() { return playerName; }
     public Integer getTableId() { return tableId; }
     public Integer getNumSeats() { return numSeats; }
     public Integer getNumPlayers() { return numPlayers; }
     public Integer getBigBlind() { return bigBlind; }
-    public Integer getPot() { return pot; }
     public Integer getCurrentBet() { return currentBet; }
     public Integer getCurrentBetPosition() { return currentBetPosition; }
     public Integer getDealerPosition() { return dealerPosition; }
@@ -43,21 +42,22 @@ public class TableState {
     public RoundState getRoundState() { return roundState; }
     public List<Card> getBoard() { return board; }
     public List<Seat> getSeats() { return seats; }
+    public List<Pot> getPotList() { return potList; }
 
-    public void setPlayerName(String newPlayerName) { playerName = newPlayerName; }
-    public void setTableId(Integer newTableId) { tableId = newTableId.intValue(); }
-    public void setNumSeats(Integer newNumSeats) { numSeats = newNumSeats.intValue(); }
-    public void setNumPlayers(Integer newNumPlayers) { numPlayers = newNumPlayers.intValue(); }
-    public void setBigBlind(Integer newBigBlind) { bigBlind = newBigBlind.intValue(); }
-    public void setPot(Integer newPot) { pot = newPot.intValue(); }
-    public void setCurrentBet(Integer newCurrentBet) { currentBet = newCurrentBet.intValue(); }
-    public void setCurrentBetPosition(Integer newCurrentBetPosition) { currentBetPosition = newCurrentBetPosition.intValue(); }
-    public void setDealerPosition(Integer newDealerPosition) { dealerPosition = newDealerPosition.intValue(); }
-    public void setSmallBlindPosition(Integer newSmallBlindPosition) { smallBlindPosition = newSmallBlindPosition.intValue(); }
-    public void setBigBlindPosition(Integer newBigBlindPosition) { bigBlindPosition = newBigBlindPosition.intValue(); }
-    public void setCurrentAction(Integer newCurrentAction) { currentAction = newCurrentAction.intValue(); }
+    public void setPlayerName(String newPlayerName) { this.playerName = newPlayerName; }
+    public void setTableId(Integer newTableId) { this.tableId = newTableId.intValue(); }
+    public void setNumSeats(Integer newNumSeats) { this.numSeats = newNumSeats.intValue(); }
+    public void setNumPlayers(Integer newNumPlayers) { this.numPlayers = newNumPlayers.intValue(); }
+    public void setBigBlind(Integer newBigBlind) { this.bigBlind = newBigBlind.intValue(); }
+    public void setCurrentBet(Integer newCurrentBet) { this.currentBet = newCurrentBet.intValue(); }
+    public void setCurrentBetPosition(Integer newCurrentBetPosition) { this.currentBetPosition = newCurrentBetPosition.intValue(); }
+    public void setDealerPosition(Integer newDealerPosition) { this.dealerPosition = newDealerPosition.intValue(); }
+    public void setSmallBlindPosition(Integer newSmallBlindPosition) { this.smallBlindPosition = newSmallBlindPosition.intValue(); }
+    public void setBigBlindPosition(Integer newBigBlindPosition) { this.bigBlindPosition = newBigBlindPosition.intValue(); }
+    public void setCurrentAction(Integer newCurrentAction) { this.currentAction = newCurrentAction.intValue(); }
     public void setWinningSeats(List<Integer> newWinningSeats) { this.winningSeats = newWinningSeats; }
-    public void setRoundState(RoundState newRoundState) { roundState = newRoundState; }
+    public void setRoundState(RoundState newRoundState) { this.roundState = newRoundState; }
+    public void setPotList(List<Pot> newPotList) { this.potList = newPotList; }
 
     /**
      * Copy board contents only for the card allowed to be displayed for the current round state.

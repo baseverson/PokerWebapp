@@ -11,15 +11,28 @@ public class Pot {
     List<Hand> handList;
     Integer potSize = 0;
 
-    public List<Hand> getHandList() { return this.handList; }
+    public void setBoard(List<Card> newBoard) { this.board = newBoard; }
     public void setHandList(List<Hand> newHandList) { this.handList = newHandList; }
 
-    public Integer getPotSize() {
-        return this.potSize;
-    }
+    public List<Hand> getHandList() { return this.handList; }
+    public Integer getPotSize() { return this.potSize; }
 
-    public void setBoard(List<Card> newBoard) {
-        this.board = newBoard;
+    /**
+     * Return a list of the player names that are eligible for this pot.
+     *
+     * @return - list of player names eligible for this pot
+     */
+    public List<String> getPlayerNameList() {
+        List<String> playerNameList = new ArrayList<String>();
+
+        // Loop through the list of seats and collect the names of the players
+        for (Seat seat : seatList) {
+            if (seat.getPlayer() != null) {
+                playerNameList.add(seat.getPlayer().getPlayerName());
+            }
+        }
+
+        return playerNameList;
     }
 
     /**
