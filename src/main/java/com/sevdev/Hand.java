@@ -47,18 +47,6 @@ public class Hand implements Comparable {
     }
 
     /**
-     * Add an array of cards to the hand
-     *
-     * @param cards - array of cards to add
-     */
-    // TODO remove
-    //public void addCards(Card[] cards) {
-    //    for (Card card : cards) {
-    //        cardList.add(new Card(card));
-    //    }
-    //}
-
-    /**
      * Add a List of cards to the hand
      *
      * @param cards - List of cards to add

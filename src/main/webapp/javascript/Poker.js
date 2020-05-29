@@ -629,6 +629,7 @@ function updateTableDisplay() {
     updateBoardDisplay();
     updatePotDisplay();
     updateSeatDisplay();
+    updateLogDisplay();
 }
 
 /*
@@ -932,3 +933,19 @@ function isWinningSeat(seatNum) {
         }
     }
 }
+
+/*
+ * Updates the log test area.
+ */
+function updateLogDisplay() {
+    var logInfo = ""
+
+    for (i=0; i<tableInfo.log.length; i++) {
+        logInfo += tableInfo.log[i] + "\n";
+    }
+
+    var textArea = document.getElementById("log")
+    textArea.value = logInfo;
+    textArea.scrollTop = textArea.scrollHeight;
+}
+

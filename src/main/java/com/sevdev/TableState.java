@@ -4,6 +4,7 @@ import com.sevdev.RoundState.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 
 import static com.sevdev.RoundState.*;
 
@@ -26,6 +27,7 @@ public class TableState {
     private List<Card> board;
     private List<Seat> seats;
     private List<Pot> potList;
+    private Queue<String> log;
 
     public String getPlayerName() { return playerName; }
     public Integer getTableId() { return tableId; }
@@ -43,6 +45,7 @@ public class TableState {
     public List<Card> getBoard() { return board; }
     public List<Seat> getSeats() { return seats; }
     public List<Pot> getPotList() { return potList; }
+    public Queue<String> getLog() { return log; }
 
     public void setPlayerName(String newPlayerName) { this.playerName = newPlayerName; }
     public void setTableId(Integer newTableId) { this.tableId = newTableId.intValue(); }
@@ -58,6 +61,7 @@ public class TableState {
     public void setWinningSeats(List<Integer> newWinningSeats) { this.winningSeats = newWinningSeats; }
     public void setRoundState(RoundState newRoundState) { this.roundState = newRoundState; }
     public void setPotList(List<Pot> newPotList) { this.potList = newPotList; }
+    public void setLog(Queue<String> newLog) { this.log = newLog; }
 
     /**
      * Copy board contents only for the card allowed to be displayed for the current round state.

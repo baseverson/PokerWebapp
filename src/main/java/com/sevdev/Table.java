@@ -2,6 +2,7 @@ package com.sevdev;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -126,16 +127,6 @@ public class Table {
         tableState.setNumSeats(numSeats);
         tableState.setNumPlayers(numPlayers);
         tableState.setBigBlind(bigBlind);
-
-        // TODO: handle table state updates for multiple pots
-//        if (potList.size() < 1) {
-//            tableState.setPot(0);
-//        }
-//        else {
-//            tableState.setPot(potList.get(0).getPotSize());
-//        }
-        tableState.setPotList(potList);
-
         tableState.setCurrentBet(currentBet);
         tableState.setCurrentBetPosition(currentBetPosition);
         tableState.setDealerPosition(dealerPosition);
@@ -146,6 +137,8 @@ public class Table {
         tableState.setRoundState(roundState);
         tableState.setBoard(board);
         tableState.setSeats(seatList);
+        tableState.setPotList(potList);
+        tableState.setLog(ActionLog.getInstance().getLog());
 
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -314,6 +307,9 @@ public class Table {
             }
         }
 
+        // Log the fold
+        ActionLog.getInstance().add(playerName + " folds.");
+
         // Notify all players that the table state has changes and needs to be refreshed.
         sendTableStateChangeNotification("ALL");
 
@@ -364,8 +360,19 @@ public class Table {
 
             // If the bet is an initial bet or raise, update the currentBet for the table as well as what seat number made the bet.
             if (betAmount > currentBet) {
+                // Log the bet/raise
+                if (currentBet == 0) {
+                    // It's a bet.
+                    ActionLog.getInstance().add(playerName + " bets.");
+                }
+                else {
+                    // It's a raise
+                    ActionLog.getInstance().add(playerName + " raises.");
+                }
+
                 currentBet = betAmount;
                 currentBetPosition = seatNum;
+
             }
 
             // Check to see if the player is All In. If so, set the seat state as such.
@@ -426,6 +433,9 @@ public class Table {
             return ("Call failed - " + e.getMessage());
         }
 
+        // Log the call
+        ActionLog.getInstance().add(playerName + " calls.");
+
         // Advance the action.
         advanceAction();
 
@@ -449,6 +459,9 @@ public class Table {
         if (currentBet != 0) {
             return ("Checking not allowed. Current bet is not 0.");
         }
+
+        // Log the check.
+        ActionLog.getInstance().add(playerName + " checks.");
 
         // Advance the action.
         advanceAction();
@@ -488,6 +501,9 @@ public class Table {
 
             // Set the player/seat to All In
             seatList.get(seatNum-1).setIsAllIn(true);
+
+            // Log the all in
+            ActionLog.getInstance().add(playerName + " goes all-in.");
 
             // Advance the action.
             advanceAction();
@@ -628,8 +644,15 @@ public class Table {
             try {
                 // Distribute chips to the winning hand(s) and note the winning seats
                 for (int i=0; i<numWinners; i++) {
-                    handList.get(i).incrementWinnings(splitWinAmount);
-                    winningSeats.add(handList.get(i).getSeatNum());
+                    Hand winningHand = handList.get(i);
+                    winningHand.incrementWinnings(splitWinAmount);
+                    winningSeats.add(winningHand.getSeatNum());
+
+                    // Log the winner(s)
+                    ActionLog.getInstance().add(
+                            seatList.get(winningHand.getSeatNum()-1).getPlayer().getPlayerName() +
+                            " wins with a " +
+                            winningHand.getType());
                 }
 
                 // Hand out the remainders starting to the left of the dealer
@@ -820,6 +843,9 @@ public class Table {
         // River
         board.add(deck.getCard());
 
+        // Log the new round
+        ActionLog.getInstance().add("New Round - Shuffle up and deal!");
+
         // Notify all players that the table has been updates
         sendTableStateChangeNotification("ALL");
     }
@@ -891,8 +917,10 @@ public class Table {
      * Manually advance the round to the next state.
      *
      * @return New round state.
+     *
+     * @throws Exception - when not enough players to start a new round
      */
-    public RoundState advanceRound() {
+    public RoundState advanceRound() throws Exception {
         try {
             // Clean up the current round
             finishRound();
@@ -935,6 +963,9 @@ public class Table {
                 break;
             case SHOWDOWN:
                 finishGame();
+                break;
+            case CLEAN_UP:
+                newRound();
                 break;
         }
 
