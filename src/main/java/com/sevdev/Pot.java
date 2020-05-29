@@ -10,6 +10,7 @@ public class Pot {
     List<Seat> seatList = new ArrayList<Seat>();
     List<Hand> handList;
     Integer potSize = 0;
+    private HandType winningHand = HandType.UNDEFINED;
 
     public void setBoard(List<Card> newBoard) { this.board = newBoard; }
     public void setHandList(List<Hand> newHandList) { this.handList = newHandList; }
@@ -22,32 +23,26 @@ public class Pot {
      *
      * @return - list of player names eligible for this pot
      */
-    public List<String> getPlayerNameList() {
-        List<String> playerNameList = new ArrayList<String>();
+    public List<Integer> getSeatNumberList() {
+        List<Integer> seatNumberList = new ArrayList<Integer>();
 
         // Loop through the list of seats and collect the names of the players
         for (Seat seat : seatList) {
-            if (seat.getPlayer() != null) {
-                playerNameList.add(seat.getPlayer().getPlayerName());
-            }
+            seatNumberList.add(seat.getSeatNum());
         }
 
-        return playerNameList;
+        return seatNumberList;
     }
 
     /**
      * Add a new player as eligible to win this pot.
      *
      * @param seat - seat object eligible to win this pot
-     * @throws Exception seat is null
      */
-    public void addSeat(Seat seat) throws Exception {
-        if (seat == null) {
-            throw new Exception("Player is null");
+    public void addSeat(Seat seat) {
+        if (seat != null) {
+            seatList.add(seat);
         }
-
-        // Add the specified player to the player list.
-        seatList.add(seat);
     }
 
     /**

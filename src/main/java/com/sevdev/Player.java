@@ -51,6 +51,8 @@ public class Player {
      * Player buys in for (more) chips.
      *
      * @param chipAmount - amount of chips to buy in for
+     *
+     * @throws Exception - invalid chip amount or buy in would exceed max stack
      */
     public void buyIn(int chipAmount) throws Exception {
         // Check to see if the deduction amount is less than 0.

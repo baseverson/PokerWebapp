@@ -25,6 +25,7 @@ public class Seat {
     public void setIsAllIn(Boolean newIsAllIn) { this.isAllIn = newIsAllIn.booleanValue(); }
     public void setPlayerBet(Integer newBet) { this.playerBet = newBet.intValue(); }
     public void increasePlayerBet(Integer newBet) { this.playerBet += newBet.intValue(); }
+    public void decreasePlayerBet(Integer newBet) { this.playerBet -= newBet.intValue(); }
 
     public Seat (int newSeatNum) {
         seatNum = newSeatNum;

@@ -51,6 +51,8 @@ public class Table {
         return tableId;
     }
 
+    public void setDealerPosition(Integer seatNum) { this.dealerPosition = seatNum; }
+
     public void addWinningSeat(int seatNum) {
         this.winningSeats.add(seatNum);
         sendTableStateChangeNotification("ALL");
@@ -133,6 +135,7 @@ public class Table {
         tableState.setSmallBlindPosition(smallBlindPosition);
         tableState.setBigBlindPosition(bigBlindPosition);
         tableState.setCurrentAction(currentAction);
+        tableState.setCurrentPotNum(currentPotNum);
         tableState.setWinningSeats(winningSeats);
         tableState.setRoundState(roundState);
         tableState.setBoard(board);
@@ -286,8 +289,9 @@ public class Table {
         // If all players but one have folded, end the game.  The single remaining player is the winner.
         if (getPlayersInHand() == 1) {
             finishRound();
-            // TODO: handle winner determination for multiple pots
-            determineWinners(0);
+            for (int i=0; i<potList.size(); i++) {
+                determineWinners(i);
+            }
             finishGame();
         }
         else if (actionOnPlayer(playerName)) {
@@ -579,31 +583,35 @@ public class Table {
      * @param potNum - the pot for which to determine the winner(s) and award the chips.
      */
     public void determineWinners(int potNum) {
+        // Determine winner(s) of each pot one at a time
+        Pot pot = potList.get(potNum);
 
-        // TODO: Need to handle multiple pots. This code still assumes one pot.
+        try {
+            // First, check for the case that only one player is eligible for this pot
+            if (pot.getSeatNumberList().size() == 1) {
+                // There's only one player eligible for this pot.  He's the winner.
+                int seatNum = pot.getSeatNumberList().get(0);
+                winningSeats.add(seatNum);
+                winningHand = HandType.WIN_BY_FOLD;
+                // Give this player all the chips in the pot.
+                seatList.get(seatNum-1).getPlayer().adjustStack(pot.getPotSize());
 
-        // First, check for the case that everyone folded
-        if (getPlayersInHand() == 1) {
-            // There's only one player left.  Everyone else must have folded.  He's the winner.
-            for (Seat seat : seatList) {
-                if (seat.getInHand()) {
-                    // This is the player still in the hand. Declare him the winner.
-                    winningSeats.add(seat.getSeatNum());
-                    winningHand = HandType.WIN_BY_FOLD;
-                    return;
-                }
+                // Log the win.
+                ActionLog.getInstance().add(seatList.get(seatNum-1).getPlayer().getPlayerName() +
+                                            " wins Pot # " +
+                                            potNum +
+                                            " by default.");
+                return;
             }
-        }
-        else if (getPlayersInHand() >= 2) {
-            // More than 2 players still in the hand. Gather all the hands and rank them.
-            List<Hand> handList = new ArrayList<Hand>();
+            else if (pot.getSeatNumberList().size() >= 2) {
+                // More than 2 players are eligible for this pot. Gather all the hands and rank them.
+                List<Hand> handList = new ArrayList<Hand>();
 
-            // Check each seat
-            for (Seat seat : seatList) {
-                if (seat.getInHand() == true) {
+                // Check each seat
+                for (Integer seatNum : pot.getSeatNumberList()) {
                     // If the seat is in, make a new hand and add all the seat's cards to the hand
-                    Hand hand = new Hand(seat.getSeatNum());
-                    hand.addCards(seat.getCards());
+                    Hand hand = new Hand(seatNum);
+                    hand.addCards(seatList.get(seatNum-1).getCards());
                     hand.addCards(board);
 
                     // Evaluate the hand to determine it's rank
@@ -612,36 +620,34 @@ public class Table {
                     // Add the hand to the list.
                     handList.add(hand);
                 }
-            }
 
-            // Once all the hands are assembled, sort the hand list by rank to see which hand is the winner
-            Collections.sort(handList, Collections.<Hand>reverseOrder());
+                // Once all the hands are assembled, sort the hand list by rank to see which hand is the winner
+                Collections.sort(handList, Collections.<Hand>reverseOrder());
 
-            //
-            // Check for multiple winning hands (ties)
-            //
+                //
+                // Check for multiple winning hands (ties)
+                //
 
-            // There's always at least 1 winner
-            int numWinners = 1;
+                // There's always at least 1 winner
+                int numWinners = 1;
 
-            // Loop through the remaining hands and compare each to the previous.
-            for (int i=1; i<handList.size(); i++) {
-                // Compare the next hand to the previous hand. If the result is 0, they tie.
-                if (handList.get(i).compareTo(handList.get(i-1)) == 0) {
-                    // Tie found. Increment the number of winners.
-                    numWinners++;
+                // Loop through the remaining hands and compare each to the previous.
+                for (int i=1; i<handList.size(); i++) {
+                    // Compare the next hand to the previous hand. If the result is 0, they tie.
+                    if (handList.get(i).compareTo(handList.get(i-1)) == 0) {
+                        // Tie found. Increment the number of winners.
+                        numWinners++;
+                    }
+                    else {
+                        // The next hand is not equal, which means none of the rest will be.  Stop looking.
+                        break;
+                    }
                 }
-                else {
-                    // The next hand is not equal, which means none of the rest will be.  Stop looking.
-                    break;
-                }
-            }
 
-            // Now that we know how many winners there are, we can divide the pot and award accordingly.
-            int splitWinAmount = potList.get(potNum).getPotSize() / numWinners;
-            int remainder = potList.get(potNum).getPotSize() % numWinners;
+                // Now that we know how many winners there are, we can divide the pot and award accordingly.
+                int splitWinAmount = potList.get(potNum).getPotSize() / numWinners;
+                int remainder = potList.get(potNum).getPotSize() % numWinners;
 
-            try {
                 // Distribute chips to the winning hand(s) and note the winning seats
                 for (int i=0; i<numWinners; i++) {
                     Hand winningHand = handList.get(i);
@@ -649,10 +655,12 @@ public class Table {
                     winningSeats.add(winningHand.getSeatNum());
 
                     // Log the winner(s)
-                    ActionLog.getInstance().add(
-                            seatList.get(winningHand.getSeatNum()-1).getPlayer().getPlayerName() +
-                            " wins with a " +
-                            winningHand.getType());
+                    ActionLog.getInstance().add("Pot #" +
+                                                potNum +
+                                                " " +
+                                                seatList.get(winningHand.getSeatNum()-1).getPlayer().getPlayerName() +
+                                                " wins with a " +
+                                                winningHand.getType());
                 }
 
                 // Hand out the remainders starting to the left of the dealer
@@ -666,22 +674,21 @@ public class Table {
                         if (handList.get(i).getSeatNum() ==  seat.getSeatNum()) {
                             // This is a winner.  Award a chip from the remainder.
                             handList.get(i).incrementWinnings(1);
-                            // Decremene the remainder
+                            // Decrement the remainder
                             remainder--;
                         }
                     }
                 }
-            }
-            catch (Exception e) {
-                System.out.println("Exception caught in Pot::awardPot() while awarding chips.");
-                System.out.println(e.getMessage());
-                System.out.println(e.getStackTrace());
-            }
 
-            // Finally, now that all the winners have been determined and the winnings have been distributed to the hands,
-            // pass the hand list to the pot.  The winnings will be distributed to the player stacks in
-            // finishRound();
-            potList.get(0).setHandList(handList);
+                // Finally, now that all the winners have been determined and the winnings have been distributed to the hands,
+                // pass the hand list to the pot.  The winnings will be distributed to the player stacks in finishGame();
+                pot.setHandList(handList);
+            }
+        }
+        catch (Exception e) {
+            System.out.println("Exception caught in Pot::awardPot() while awarding chips.");
+            System.out.println(e.getMessage());
+            System.out.println(e.getStackTrace());
         }
     }
 
@@ -703,26 +710,33 @@ public class Table {
 
         try {
             // Award the pot to the winner
-            //determineWinner();
 
             // TODO: award winnings from multiple pots
             // For now, award the winnings from the single pot.  Check each hand to see if there are
             // winnings to award.
-            List<Hand> handList = potList.get(0).getHandList();
-            for (Hand hand : handList) {
-                if (hand.getWinnings() > 0) {
-                    // There's something to award.
-                    seatList.get(hand.getSeatNum()-1).getPlayer().adjustStack(hand.getWinnings());
 
-                    // TODO: Add to the action log: Pot #, player, hand, amount of chips won
+            for (Pot pot : potList) {
+                List<Hand> handList = pot.getHandList();
+                for (Hand hand : handList) {
+                    if (hand.getWinnings() > 0) {
+                        // There's something to award.
+                        seatList.get(hand.getSeatNum()-1).getPlayer().adjustStack(hand.getWinnings());
+
+                        // TODO: Add to the action log: Pot #, player, hand, amount of chips won
+                    }
                 }
+
             }
 
-            // Make sure the winning seat number is valid and has a player in it
-            //if (0 < winningSeat && winningSeat < numSeats && seatList.get(winningSeat-1).getPlayer() != null) {
-            //    // Add the pot to the winning player's stack
-            //    seatList.get(winningSeat-1).getPlayer().adjustStack(pot);
-            //}
+//            List<Hand> handList = potList.get(0).getHandList();
+//            for (Hand hand : handList) {
+//                if (hand.getWinnings() > 0) {
+//                    // There's something to award.
+//                    seatList.get(hand.getSeatNum()-1).getPlayer().adjustStack(hand.getWinnings());
+//
+//                    // TODO: Add to the action log: Pot #, player, hand, amount of chips won
+//                }
+//            }
         }
         catch (Exception e) {
             // Exception caught adding chips to the winning player's stack.  Print it and move on.
@@ -903,10 +917,83 @@ public class Table {
      */
     public void finishRound() {
 
-        // Gather up all the bets and put them into the pot
-        for (Seat seat : seatList) {
-            potList.get(currentPotNum).incrementSize(seat.getPlayerBet());
-            seat.setPlayerBet(0);
+        // Find the smallest player bet. This amount should be removed from each player bet and added to the current pot.
+        // If there are any players left with a bet amount after this sweep, a new pot needs to be created and
+        // any players still with bet amounts are eligible for that pot.
+        // Repeat until all player bets have been completely collected into a pot.
+
+        boolean betsToBeCollected = true;
+
+        // Loop until there are no more bets to be collected
+        while (betsToBeCollected) {
+            // Find the smallest player bet
+            int smallestBet = 0;
+            for (Seat seat : seatList) {
+                if ((seat.getPlayerBet() > 0 && smallestBet == 0) ||
+                        (seat.getPlayerBet() > 0 && seat.getPlayerBet() < smallestBet)) {
+                    smallestBet = seat.getPlayerBet();
+                }
+            }
+
+            // If the smallestBet is still 0, we're done.  No more bets to collect.
+            if (smallestBet <= 0) {
+                betsToBeCollected = false;
+            } else {
+                // Loop through each seat and collect the smallestBet amount from each player bet into the currentPot.
+                // At the same time, check to see if any players are all-in. If so, a side pot is needed.
+                boolean newPotNeeded = false;
+                for (Seat seat : seatList) {
+                    // If the playerBet is greater than zero, he's in the hand. Collect chips for the pot.
+                    if(seat.getPlayerBet() > 0) {
+                        potList.get(currentPotNum).incrementSize(smallestBet);
+                        seat.decreasePlayerBet(smallestBet);
+
+                        if (seat.getIsAllIn() == true) {
+                            // At least one player is all in with this collection. A side pot is needed.
+                            newPotNeeded = true;
+                        }
+                    }
+                }
+
+                // If a new pot is needed, create one now.
+                if (newPotNeeded == true) {
+                    potList.add(new Pot());
+                    currentPotNum++;
+
+                    // Add the name of any player eligible for the next pot to the pot.
+                    for (Seat seat : seatList) {
+                        if ( (seat.getInHand() == true) && // they must be in the hand
+                                ( (seat.getPlayer().getStack() > 0) || // and have chips left in their stack
+                                        (seat.getPlayerBet() > 0))) { // or still have chips in their current bet to collect
+                            potList.get(currentPotNum).addSeat(seat);
+                        }
+                    }
+                }
+
+
+
+
+
+
+
+
+
+
+
+                // Check for the new smallest bet
+                smallestBet = 0;
+                for (Seat seat : seatList) {
+                    if ((seat.getPlayerBet() > 0 && smallestBet == 0) ||
+                            (seat.getPlayerBet() > 0 && seat.getPlayerBet() < smallestBet)) {
+                        smallestBet = seat.getPlayerBet();
+                    }
+                }
+
+                // If the smallestBet is still 0, we're done.  No more bets to collect.
+                if (smallestBet <= 0) {
+                    betsToBeCollected = false;
+                }
+            }
         }
 
         // Set the table's current bet back to 0;
@@ -958,11 +1045,19 @@ public class Table {
             case RIVER:
                 roundState = SHOWDOWN;
                 currentAction = 0;
-                // TODO: handle determination of winners for multiple pots
-                determineWinners(0);
+                // Reset currentPotNum to use for processing the pot(s) and determining the winner(s)
+                currentPotNum = -1;
                 break;
             case SHOWDOWN:
-                finishGame();
+                currentAction = 0;
+                // Process each pot in the potList to determine the winner(s) and award chips.
+                currentPotNum++;
+                // If currentPotNum is greater than the number of pots, then we've processed the winners for all the pots.
+                if (currentPotNum < potList.size()) {
+                    determineWinners(currentPotNum);
+                } else {
+                    finishGame();
+                }
                 break;
             case CLEAN_UP:
                 newRound();

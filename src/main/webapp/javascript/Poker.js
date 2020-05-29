@@ -651,8 +651,8 @@ function updatePotDisplay() {
     for (var potNum in tableInfo.potList) {
         outputHTML += "<td style='color:white'>Pot: <div style='color:lightblue'><b>" + tableInfo.potList[potNum].potSize + "</b></div><br>";
 
-        for (var playerCount in tableInfo.potList[potNum].playerNameList) {
-            outputHTML += tableInfo.potList[potNum].playerNameList[playerCount] + "<br>";
+        for (var seatCount in tableInfo.potList[potNum].seatNumberList) {
+            outputHTML += tableInfo.potList[potNum].seatNumberList[seatCount] + "<br>";
         }
         outputHTML += "</td>";
     }

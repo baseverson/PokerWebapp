@@ -6,9 +6,7 @@ import javax.swing.*;
 
 public class ActionLogTest extends TestCase {
 
-    public ActionLogTest(String name) {
-        super(name);
-    }
+    public ActionLogTest(String name) { super(name); }
 
     public void testGeneral() {
 

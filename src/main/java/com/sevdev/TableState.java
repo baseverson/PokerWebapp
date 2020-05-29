@@ -21,6 +21,7 @@ public class TableState {
     private Integer smallBlindPosition = 0;
     private Integer bigBlindPosition = 0;
     private Integer currentAction = 0;
+    private Integer currentPotNum = 0;
     private List<Integer> winningSeats;
     private HandType winningHand = HandType.UNDEFINED;
     private RoundState roundState = RoundState.UNDEFINED;
@@ -40,6 +41,7 @@ public class TableState {
     public Integer getSmallBlindPosition() { return smallBlindPosition; }
     public Integer getBigBlindPosition() { return bigBlindPosition; }
     public Integer getCurrentAction() { return currentAction; }
+    public Integer getCurrentPotNum() { return currentPotNum; }
     public List<Integer> getWinningSeats() { return winningSeats; }
     public RoundState getRoundState() { return roundState; }
     public List<Card> getBoard() { return board; }
@@ -58,6 +60,7 @@ public class TableState {
     public void setSmallBlindPosition(Integer newSmallBlindPosition) { this.smallBlindPosition = newSmallBlindPosition.intValue(); }
     public void setBigBlindPosition(Integer newBigBlindPosition) { this.bigBlindPosition = newBigBlindPosition.intValue(); }
     public void setCurrentAction(Integer newCurrentAction) { this.currentAction = newCurrentAction.intValue(); }
+    public void setCurrentPotNum(Integer newCurrentPotNum) { this.currentPotNum = newCurrentPotNum.intValue(); }
     public void setWinningSeats(List<Integer> newWinningSeats) { this.winningSeats = newWinningSeats; }
     public void setRoundState(RoundState newRoundState) { this.roundState = newRoundState; }
     public void setPotList(List<Pot> newPotList) { this.potList = newPotList; }
