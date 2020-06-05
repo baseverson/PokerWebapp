@@ -11,5 +11,3 @@ class PlayerActions extends React.Component {
         );
     }
 }
-
-//ReactDOM.render(<PlayerActions />, document.getElementById("playerActions"));

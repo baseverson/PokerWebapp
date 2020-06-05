@@ -1,6 +1,7 @@
+const { Component } = React;
+
 class App extends React.Component {
 
-    ws = new WebSocket(wsAddress);
 
     constructor(props) {
         super(props);
@@ -8,7 +9,7 @@ class App extends React.Component {
             playerName: getPlayerName(),
         }
 
-        this.playerInfoComponent = React.createRef();
+        this.ws = new WebSocket(wsAddress);
     }
 
 
@@ -30,14 +31,11 @@ class App extends React.Component {
         this.setState({playerName: ""});
     };
 
-    establishWebSocketConnection() {
-    }
-
     componentDidMount() {
         //
         // onopen function
         //
-        this.ws.onopen = function() {
+        this.ws.onopen = () => {
             console.log("WebSocket opened to " + wsAddress);
             if (getPlayerName() == "") {
                 // No user name set.  Don't register the connection.
@@ -52,26 +50,27 @@ class App extends React.Component {
         //
         // onmessage function
         //
-        this.ws.onmessage = function(evt) {
+        this.ws.onmessage = (evt) => {
             var receivedMsg = evt.data;
-            console.log("Received message: " + receivedMsg);
+
+            console.log(receivedMsg);
 
             // If this was a table update message, get the new table state and refresh the page
             if (receivedMsg = "TableUpdated") {
-                // TODO
-                // getTableInfo();
+                // Tell the Table component to pull the latest player info from the server.
+                this.refs.tableComponent.retrieveTableInfo();
             }
             // If this was a player update message, get the new player state and refresh the page
             else if (receivedMsg = "PlayerUpdated") {
                 // Tell the PlayerInfo component to pull the latest player info from the server.
-                this.playerInfoComponent.current.retrievePlayerInfo();
+                this.refs.playerInfoComponent.retrievePlayerInfo();
             }
         }
 
         //
         // onclose message
         //
-        this.ws.onclose = function() {
+        this.ws.onclose = () => {
             console.log("Websocket connection to " + wsAddress + " closed.");
         }
     }
@@ -94,10 +93,12 @@ class App extends React.Component {
                 <div>
                     <Heading />
                     <PlayerInfo
-                        ref={this.playerInfoComponent}
+                        ref="playerInfoComponent"
                         handleSuccessfulLogout = {this.handleSuccessfulLogout}
                     />
-                    <Table />
+                    <Table
+                        ref="tableComponent"
+                    />
                     <ActionLog />
                 </div>
             )

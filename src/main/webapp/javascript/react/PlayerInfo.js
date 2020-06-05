@@ -9,7 +9,7 @@ class PlayerInfo extends React.Component {
     }
 
     retrievePlayerInfo() {
-        // Send login request to the server
+        // Send request to the server for the latest player info
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = () => {
             if (xhttp.readyState == 4 && xhttp.status == 200) {
