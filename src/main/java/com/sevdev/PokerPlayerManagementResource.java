@@ -14,7 +14,7 @@ import static java.lang.Math.abs;
 public class PokerPlayerManagementResource {
 
     @GET
-    @Path("playerInfo")
+    @Path("getPlayerInfo")
     public Response getPlayerInfo(@QueryParam("playerName") String playerName) {
         try {
             String playerJSON = PlayerDatabase.getInstance().getPlayerAsJSON(playerName);
@@ -48,6 +48,7 @@ public class PokerPlayerManagementResource {
             return Response
                     .status(Response.Status.OK)
                     .type(MediaType.TEXT_PLAIN)
+                    .allow()
                     .entity(responseMsg)
                     .build();
         }
@@ -125,6 +126,12 @@ public class PokerPlayerManagementResource {
         }
     }
 
+    /**
+     * Handle request for player buy-in
+     * @param playerName - name of player buying chips
+     * @param buyInAmount - amount of chips player is buying
+     * @return - HTTP response with success/failure indication
+     */
     @POST
     @Path("buyIn")
     public Response buyIn(@QueryParam("playerName") String playerName,
@@ -157,6 +164,44 @@ public class PokerPlayerManagementResource {
                     .status(Response.Status.INTERNAL_SERVER_ERROR)
                     .type(MediaType.TEXT_PLAIN)
                     .entity(e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * Handle request for player cash out
+     * @param playerName - name of player wanting to cash out
+     * @return HTTP response with success/failure indication
+     */
+    @POST
+    @Path("cashOut")
+    public Response cashOut(@QueryParam("playerName") String playerName) {
+        // Retrieve the player from the database
+        Player player = PlayerDatabase.getInstance().getPlayer(playerName);
+
+        // Check to make sure the player is not null (player exists in the database)
+        if (player == null) {
+            // If the return is null, the player does not exist in the database.
+            return Response
+                    .status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity("Cash out failed - player does not exist.")
+                    .build();
+        }
+        else if (Table.getInstance().getPlayerSeatNum(playerName) != 0) {
+            // Player is currently sitting at the table and can't cash out.
+            return Response
+                    .status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity("You can't cash out while sitting at the table.")
+                    .build();
+        } else {
+            // Player exists.  Execute the cash out.
+            player.cashOut();
+            return Response
+                    .status(Response.Status.OK)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity("Cash out successful.")
                     .build();
         }
     }

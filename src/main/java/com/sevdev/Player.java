@@ -80,6 +80,27 @@ public class Player {
         }
     }
 
+    public void cashOut() {
+        // If there are more chips than buy in
+        if (this.stack > this.buyin) {
+            // Decrement the stack by the buy in amount and zero out the buy in
+            this.stack -= this.buyin;
+            this.buyin = 0;
+        } else {
+            // Stack is less than or equal to the buy in, so decrement the buy in by the stack amount and zero the stack
+            this.buyin -= this.stack;
+            this.stack = 0;
+        }
+
+        // Update the database
+        jedis.hset(playerKey+playerName, buyinKey, this.buyin.toString());
+        jedis.hset(playerKey+playerName, stackKey, this.stack.toString());
+
+        // Notify the player UI that a player change was made and the page needs to be updated.
+        WebSocketSessionManager.getInstance().notifyPlayer(playerName, "PlayerUpdated");
+        WebSocketSessionManager.getInstance().notifyPlayer("ALL", "TableUpdated");
+    }
+
     /**
      * Remove the specified chips from the player's stack.
      *

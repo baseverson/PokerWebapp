@@ -269,7 +269,10 @@ public class Table {
         int seatNum = getPlayerSeatNum(playerName);
 
         // Make sure the player is actually sitting at the table
-        if (seatNum != 0) {
+        if (seatNum == 0) {
+            // Do nothing - player is not sitting at a seat, nor is he in the hand.
+            return ("Player not sitting at the table");
+        } else {
             // Move the current bet to the pot
             potList.get(currentPotNum).incrementSize(seatList.get(seatNum-1).getPlayerBet());
             seatList.get(seatNum-1).setPlayerBet(0);

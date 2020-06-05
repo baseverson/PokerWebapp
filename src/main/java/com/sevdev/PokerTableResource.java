@@ -11,6 +11,36 @@ import javax.ws.rs.core.Response;
 public class PokerTableResource {
 
     /**
+     * Handle HTTP GET request for version info.
+     *
+     * @return HTTP response with version info
+     */
+    @GET
+    @Path("getVersion")
+    public Response getVersion() {
+        return Response
+                .status(Response.Status.OK)
+                .type(MediaType.TEXT_PLAIN)
+                .entity("v1.5")
+                .build();
+    }
+
+    /**
+     * Handle HTTP GET request for Table Id.
+     *
+     * @return HTTP response with Table Id
+     */
+    @GET
+    @Path("getTableId")
+    public Response getTableId() {
+        return Response
+                .status(Response.Status.OK)
+                .type(MediaType.TEXT_PLAIN)
+                .entity(Table.getInstance().getTableId())
+                .build();
+    }
+
+    /**
      * Method handling HTTP GET requests for table state. The returned object will be sent
      * to the client as "application/json" media type.
      *

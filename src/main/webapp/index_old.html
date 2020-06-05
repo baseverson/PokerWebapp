@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="css/Poker.css">
+
+    <script src="javascript/cookies.js"></script>
+    <script src="javascript/Poker.js"></script>
+
+  </head>
+
+  <body>
+
+    <table>
+      <tr>
+        <td><img src="graphics/chips.jpg" alt="Chip Stack" width="100" height="147"></td>
+        <td>
+          <table>
+            <tr>
+              <h2>Brandt's Poker Room (V1.1)</h2>
+            </tr>
+            <tr>
+              <h3 id="tableId"></h3>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+    <br><br>
+
+    <div id="userFunctions"></div>
+
+    <br><br>
+
+    <!-- The board - common cards -->
+    <table>
+      <thead>
+        <div id="roundState">???</div>
+      </thead>
+      <tr>
+        <td><img id="board1" src="graphics/back.png" alt="Card 1" width="100" height="150"></td>
+        <td><img id="board2" src="graphics/back.png" alt="Card 2" width="100" height="150"></td>
+        <td><img id="board3" src="graphics/back.png" alt="Card 3" width="100" height="150"></td>
+        <td><img id="board4" src="graphics/back.png" alt="Card 4" width="100" height="150"></td>
+        <td><img id="board5" src="graphics/back.png" alt="Card 5" width="100" height="150"></td>
+      </tr>
+    </table>
+
+    <!-- The pot -->
+    <div id="potInfo"></div>
+
+    <!-- Table Seats - to be filled with Players -->
+    <br><br>
+    <table id="Table" border="1">
+      <thead>Seats
+      <tbody id="TableBody">
+      </tbody>
+
+    </table>
+
+    <!-- Log area to display actions from the game -->
+    <br>
+    <textarea id="log" name="log" rows="10" cols="80"></textarea>
+
+  <script>
+    // Updates the player name on page load to whatever is stored in the cookie
+    updatePlayerInfo();
+    // Read the current state of the table and update the page.
+    getTableInfo();
+    // Connect the web socket to the server to get alerts and updates.
+    establishWebSocketConnection();
+  </script>
+
+  </body>
+
+</html>

@@ -2,72 +2,56 @@
 <html>
   <head>
     <link rel="stylesheet" type="text/css" href="css/Poker.css">
+    <!--
+    <link rel="stylesheet" type="text/css" href="images.css">
+    -->
+    <link rel="icon" href="favicon.ico">
+    <title>Brandt's Poker Room</title>
+
+    <!--
+    <script src="javascript/cookies.js"></script>
+    <script src="javascript/Poker.js"></script>
+    -->
+
+    <!-- Include React libraries -->
+    <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+<!--
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react-dom.js" charset="utf-8"></script>
+-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.21.1/babel.min.js" charset="utf-8"></script>
+    <!--
+        <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+        <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+
+        <script src="https://unpkg.com/react@16/umd/react.production.min.js" crossorigin></script>
+        <script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js" crossorigin></script>
+        <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    -->
+
+
+    <!-- React component scripts -->
+    <script src="javascript/react/cookies.js"></script>
+    <script type="text/babel" src="javascript/react/ServerInfo.js"></script>
+    <script type="text/babel" src="javascript/react/Heading.js"></script>
+    <script type="text/babel" src="javascript/react/PlayerCreate.js"></script>
+    <script type="text/babel" src="javascript/react/PlayerLogin.js"></script>
+    <script type="text/babel" src="javascript/react/PlayerInfo.js"></script>
+    <script type="text/babel" src="javascript/react/Table.js"></script>
+    <script type="text/babel" src="javascript/react/PlayerActions.js"></script>
+    <script type="text/babel" src="javascript/react/ActionLog.js"></script>
+    <script type="text/babel" src="javascript/react/App.js"></script>
+
   </head>
 
   <body>
 
-    <script src="javascript/cookies.js"></script>
-    <script src="javascript/Poker.js"></script>
-
-    <table>
-      <tr>
-        <td><img src="graphics/chips.jpg" alt="Chip Stack" width="100" height="147"></td>
-        <td>
-          <table>
-            <tr>
-              <h2>Brandt's Poker Room (V1.0)</h2>
-            </tr>
-            <tr>
-              <h3 id="tableId"></h3>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-    <br><br>
-
-    <div id="userFunctions"></div>
-
-    <br><br>
-
-    <!-- The board - common cards -->
-    <table>
-      <thead>
-        <div id="roundState">???</div>
-      </thead>
-      <tr>
-        <td><img id="board1" src="graphics/back.png" alt="Card 1" width="100" height="150"></td>
-        <td><img id="board2" src="graphics/back.png" alt="Card 2" width="100" height="150"></td>
-        <td><img id="board3" src="graphics/back.png" alt="Card 3" width="100" height="150"></td>
-        <td><img id="board4" src="graphics/back.png" alt="Card 4" width="100" height="150"></td>
-        <td><img id="board5" src="graphics/back.png" alt="Card 5" width="100" height="150"></td>
-      </tr>
-    </table>
-
-    <!-- The pot -->
-    <div id="potInfo"></div>
-
-    <!-- Table Seats - to be filled with Players -->
-    <br><br>
-    <table id="Table" border="1">
-      <thead>Seats
-      <tbody id="TableBody">
-      </tbody>
-
-    </table>
-
-    <!-- Log area to display actions from the game -->
-    <br>
-    <textarea id="log" name="log" rows="10" cols="80"></textarea>
-
-  <script>
-    // Updates the player name on page load to whatever is stored in the cookie
-    updatePlayerInfo();
-    // Read the current state of the table and update the page.
-    getTableInfo();
-    // Connect the web socket to the server to get alerts and updates.
-    establishWebSocketConnection();
-  </script>
+    <div id="app"></div>
+    <div id="playerManagement"></div>
+    <div id="table"></div>
+    <div id="playerActions"></div>
+    <div id="actionLog"></div>
 
   </body>
 
