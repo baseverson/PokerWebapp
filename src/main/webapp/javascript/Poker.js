@@ -60,11 +60,13 @@ function establishWebSocketConnection() {
         log("Received message: " + receivedMsg);
 
         // If this was a table update message, get the new table state and refresh the page
-        if (receivedMsg = "TableUpdated") {
+        if (receivedMsg == "TableUpdated") {
+            log("***TableUpdated message received via the Web Socket.");
             getTableInfo();
         }
         // If this was a player update message, get the new player state and refresh the page
-        else if (receivesMsg = "PlayerUpdated") {
+        else if (receivedMsg == "PlayerUpdated") {
+            log("***PlayerUpdated message received via the Web Socket.");
             updatePlayerInfo();
         }
     }
@@ -153,7 +155,7 @@ function updatePlayerInfo() {
         }
     };
 
-    xhttp.open("GET", "http://" + serverAddress + "rest/PlayerManagement/playerInfo?playerName=" + playerName, true);
+    xhttp.open("GET", "http://" + serverAddress + "rest/PlayerManagement/getPlayerInfo?playerName=" + playerName, true);
     xhttp.setRequestHeader("Content-type", "application/json");
     xhttp.send();
 }
@@ -409,6 +411,9 @@ function sitDown(seatNum) {
         if (this.readyState == 4 && this.status == 200) {
             log(this.responseText);
         }
+        else if (this.readyState == 4 && this.status == 500) {
+            console.log(this.responseText);
+        }
     };
 
     xhttp.open("POST", "http://" + serverAddress + "rest/Table/sitDown?playerName=" + getPlayerName() + "&seatNum=" + seatNum, true);
@@ -425,6 +430,9 @@ function leaveTable() {
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             log(this.responseText);
+        }
+        else if (this.readyState == 4 && this.status == 500) {
+            console.log(this.responseText);
         }
     };
 
@@ -446,6 +454,9 @@ function fold() {
             // Update the player info to refect the new stack size
             updatePlayerInfo();
         }
+        else if (this.readyState == 4 && this.status == 500) {
+            console.log(this.responseText);
+        }
     };
 
     xhttp.open("POST", "http://" + serverAddress + "rest/Table/fold?playerName=" + getPlayerName(), true);
@@ -465,6 +476,9 @@ function placeBet(betAmount) {
 
             // Update the player info to refect the new stack size
             updatePlayerInfo();
+        }
+        else if (this.readyState == 4 && this.status == 500) {
+            console.log(this.responseText);
         }
     };
 
@@ -494,10 +508,10 @@ function bet() {
     }
 
     // Check to make sure the bet isn't bigger than the player's stack
-    if (tableInfo.seats[seatNum-1].player.stack < betAmount) {
+    if (tableInfo.seats[seatNum].player.stack < betAmount) {
         if (window.confirm("The bet is larger than your current stack. Go All In?")) {
             // Player says yes, go All In. Set the betAmount to the player's stack size.
-            betAmount = tableInfo.seats[seatNum-1].player.stack;
+            betAmount = tableInfo.seats[seatNum].player.stack;
         }
         else {
             // Player does not want to go all in. Do nothing.
@@ -525,6 +539,9 @@ function check() {
         if (this.readyState == 4 && this.status == 200) {
             log(this.responseText);
         }
+        else if (this.readyState == 4 && this.status == 500) {
+            console.log(this.responseText);
+        }
     };
 
     xhttp.open("POST", "http://" + serverAddress + "rest/Table/check?playerName=" + getPlayerName(), true);
@@ -545,6 +562,9 @@ function call() {
             // Update the player info to refect the new stack size
             updatePlayerInfo();
         }
+        else if (this.readyState == 4 && this.status == 500) {
+            console.log(this.responseText);
+        }
     };
 
     xhttp.open("POST", "http://" + serverAddress + "rest/Table/call?playerName=" + getPlayerName(), true);
@@ -564,6 +584,9 @@ function allin() {
 
             // Update the player info to refect the new stack size
             updatePlayerInfo();
+        }
+        else if (this.readyState == 4 && this.status == 500) {
+            console.log(this.responseText);
         }
     };
 
@@ -702,7 +725,7 @@ function getSingleSeatDisplay(seatNum) {
     var outputHTML = "";
 
     // Start of seat row. Each seat row contains 3 cells (columns).
-    if (tableInfo.currentAction == seatNum+1) {
+    if (tableInfo.currentAction == seatNum) {
         outputHTML += "<tr style='background-color:#FFC2B3;color:black'>";
     }
     else {
@@ -726,7 +749,7 @@ function getSingleSeatDisplay(seatNum) {
   */
 function getSeatPlayerInfo(seatNum) {
     var outputHTML = "<td>";
-    outputHTML += "Seat #" + (seatNum+1) + "<br><br>";
+    outputHTML += "Seat #" + (seatNum) + "<br><br>";
 
     // If the seat is open, set the player name to 'OPEN' and display a button to allow a user to sit down.
     if (tableInfo.seats[seatNum].player == null ) {
@@ -735,7 +758,7 @@ function getSeatPlayerInfo(seatNum) {
 
         // If the current player is not already sitting at a seat, display the "Sit Here" button.
         if (seatNumForPlayer(getPlayerName()) == 0) {
-            outputHTML += "<button type='button' onClick='sitDown(" + (seatNum+1) + ")'>Sit Here</button>";
+            outputHTML += "<button type='button' onClick='sitDown(" + (seatNum) + ")'>Sit Here</button>";
         }
     }
     // Else, display the player name and stack size.
@@ -745,7 +768,7 @@ function getSeatPlayerInfo(seatNum) {
         outputHTML += "Stack: " + tableInfo.seats[seatNum].player.stack + "<br><br>";
 
         // If the current player is sitting at this seat, display the "Leave Table" button.
-        if (seatNumForPlayer(getPlayerName()) == (seatNum + 1)) {
+        if (seatNumForPlayer(getPlayerName()) == (seatNum)) {
             outputHTML += "<button type='button' onClick='leaveTable()'>Leave Table</button>";
         }
     }
@@ -791,17 +814,17 @@ function getSeatSpecialInfo(seatNum) {
     var outputHTML = "<td>"
 
     // If this seat is the dealer, display the dealer button.
-    if (tableInfo.dealerPosition == seatNum+1) {
+    if (tableInfo.dealerPosition == seatNum) {
         outputHTML += "<img src='graphics/Dealer.png' alt='Dealer' width='50' height='50'>";
     }
 
     // If this seat is the small blind, display the small blind button.
-    if (tableInfo.smallBlindPosition == seatNum+1) {
+    if (tableInfo.smallBlindPosition == seatNum) {
         outputHTML += "<img src='graphics/SmallBlind.png' alt='Small Blind' width='50' height='50'>";
     }
 
     // If this seat is the big blind, display the big blind button.
-    if (tableInfo.bigBlindPosition == seatNum+1) {
+    if (tableInfo.bigBlindPosition == seatNum) {
         outputHTML += "<img src='graphics/BigBlind.png' alt='Big Blind' width='50' height='50'>";
     }
 
@@ -830,8 +853,7 @@ function getSeatActionInputs(seatNum) {
     // If the round state is showdown, do nothing.  Players can take no more action.
     if (tableInfo.roundState == "SHOWDOWN" || tableInfo.roundState == "CLEAN_UP") {
         // If we are in the showdown and a winner is specified, show the winner badge
-        //if (tableInfo.winningSeat == seatNum+1) {
-        if (isWinningSeat(seatNum+1)) {
+        if (isWinningSeat(seatNum)) {
             outputHTML += "<img src='graphics/winner.jpg' alt='Winner' width='80' height='80'>";
         }
         outputHTML += "</td>";
@@ -853,7 +875,7 @@ function getSeatActionInputs(seatNum) {
             // 2) the current action is on this seat
             // 3) the seat/player is not already All-In (the All In check was done previously in this function)
             if (tableInfo.seats[seatNum].player.playerName == getPlayerName() &&
-                tableInfo.currentAction == seatNum+1) {
+                tableInfo.currentAction == seatNum) {
 
                 //***********************************************************
                 // Always display fold button

@@ -109,7 +109,10 @@ public class PokerPlayerManagementResource {
             // If the player is at the table, leave
             Table.getInstance().leaveTable(playerName);
 
+            // Alert the PlayerDatabase that the player is logged out.
+            // The PlayerDatabase maintains the list of players logged in.
             String result =  PlayerDatabase.getInstance().logout(playerName);
+
             return Response
                     .status(Response.Status.OK)
                     .type(MediaType.TEXT_PLAIN)

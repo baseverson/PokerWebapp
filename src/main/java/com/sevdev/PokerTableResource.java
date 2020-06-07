@@ -110,8 +110,25 @@ public class PokerTableResource {
     @POST
     @Path("leaveTable")
     @Produces(MediaType.TEXT_PLAIN)
-    public String leaveTable(@QueryParam("playerName") String playerName) {
-        return Table.getInstance().leaveTable(playerName);
+    public Response leaveTable(@QueryParam("playerName") String playerName) {
+        String result = null;
+        try {
+            result = Table.getInstance().leaveTable(playerName);
+
+            return Response
+                    .status(Response.Status.OK)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(result)
+                    .build();
+        }
+        catch (Exception e) {
+            return Response
+                    .status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(e.getMessage())
+                    .build();
+        }
+
     }
 
     /**
@@ -124,8 +141,25 @@ public class PokerTableResource {
     @POST
     @Path("fold")
     @Produces(MediaType.TEXT_PLAIN)
-    public String fold(@QueryParam("playerName") String playerName) {
-        return Table.getInstance().fold(playerName);
+    public Response fold(@QueryParam("playerName") String playerName) {
+        String result = null;
+        try {
+            result =  Table.getInstance().fold(playerName);
+
+            return Response
+                    .status(Response.Status.OK)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(result)
+                    .build();
+        }
+        catch (Exception e) {
+            return Response
+                    .status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(e.getMessage())
+                    .build();
+        }
+
     }
 
     /**
@@ -138,8 +172,25 @@ public class PokerTableResource {
     @POST
     @Path("check")
     @Produces(MediaType.TEXT_PLAIN)
-    public String bet(@QueryParam("playerName") String playerName) {
-        return Table.getInstance().check(playerName);
+    public Response bet(@QueryParam("playerName") String playerName) {
+        String result = null;
+        try {
+            result =  Table.getInstance().check(playerName);
+
+            return Response
+                    .status(Response.Status.OK)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(result)
+                    .build();
+        }
+        catch (Exception e) {
+            return Response
+                    .status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(e.getMessage())
+                    .build();
+        }
+
     }
 
     /**
@@ -153,9 +204,26 @@ public class PokerTableResource {
     @POST
     @Path("bet")
     @Produces(MediaType.TEXT_PLAIN)
-    public String bet(@QueryParam("playerName") String playerName,
+    public Response bet(@QueryParam("playerName") String playerName,
                       @QueryParam("betAmount") Integer betAmount) {
-        return Table.getInstance().bet(playerName, betAmount);
+        String result = null;
+        try {
+            result =  Table.getInstance().bet(playerName, betAmount);
+
+            return Response
+                    .status(Response.Status.OK)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(result)
+                    .build();
+        }
+        catch (Exception e) {
+            return Response
+                    .status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(e.getMessage())
+                    .build();
+        }
+
     }
 
     /**
@@ -168,8 +236,25 @@ public class PokerTableResource {
     @POST
     @Path("call")
     @Produces(MediaType.TEXT_PLAIN)
-    public String call(@QueryParam("playerName") String playerName) {
-        return Table.getInstance().call(playerName);
+    public Response call(@QueryParam("playerName") String playerName) {
+        String result = null;
+        try {
+            result =  Table.getInstance().call(playerName);
+
+            return Response
+                    .status(Response.Status.OK)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(result)
+                    .build();
+        }
+        catch (Exception e) {
+            return Response
+                    .status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(e.getMessage())
+                    .build();
+        }
+
     }
 
     /**
@@ -182,8 +267,25 @@ public class PokerTableResource {
     @POST
     @Path("allIn")
     @Produces(MediaType.TEXT_PLAIN)
-    public String allIn(@QueryParam("playerName") String playerName) {
-        return Table.getInstance().allIn(playerName);
+    public Response allIn(@QueryParam("playerName") String playerName) {
+        String result = null;
+        try {
+            result =  Table.getInstance().allIn(playerName);
+
+            return Response
+                    .status(Response.Status.OK)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(result)
+                    .build();
+        }
+        catch (Exception e) {
+            return Response
+                    .status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity(e.getMessage())
+                    .build();
+        }
+
     }
 
     /**

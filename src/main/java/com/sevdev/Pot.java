@@ -3,6 +3,7 @@ package com.sevdev;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.ListIterator;
 
 public class Pot {
 
@@ -52,12 +53,21 @@ public class Pot {
      */
     public void removeSeat(Integer seatNum) {
         // Run through the list of seats looking for the one with the specified number
+        ListIterator<Seat> seatIterator = seatList.listIterator();
+        while (seatIterator.hasNext()) {
+            Seat seat = seatIterator.next();
+            if (seat.getSeatNum() == seatNum) {
+                seatIterator.remove();
+            }
+        }
+/*
         for (Seat seat : seatList) {
             if (seat.getSeatNum() == seatNum) {
                 // The number matches. Remove this seat from the list.
                 seatList.remove(seat);
             }
         }
+ */
     }
 
     /**

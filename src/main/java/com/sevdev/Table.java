@@ -37,10 +37,10 @@ public class Table {
     private Integer currentPotNum = 0;
     private Integer currentBet = 0;
     private Integer currentBetPosition = 0;
-    private Integer dealerPosition = 0;
-    private Integer smallBlindPosition = 0;
-    private Integer bigBlindPosition = 0;
-    private Integer currentAction = 0;
+    private Integer dealerPosition = -1;
+    private Integer smallBlindPosition = -1;
+    private Integer bigBlindPosition = -1;
+    private Integer currentAction = -1;
     private List<Integer> winningSeats = new ArrayList<Integer>();
     private HandType winningHand = HandType.UNDEFINED;
     private RoundState roundState = RoundState.UNDEFINED;
@@ -84,24 +84,26 @@ public class Table {
         numSeats = newNumSeats;
         bigBlind = newBigBlind;
         currentPotNum = 0;
-        dealerPosition = 0;
-        currentAction = 0;
+        dealerPosition = -1;
+        smallBlindPosition = -1;
+        bigBlindPosition = -1;
+
+        currentAction = -1;
         //board = new Card[5];
         //seats = new Seat[newNumSeats];
 
         // initialize the seat array
-        for (int i=0; i<numSeats; i++) {
-            seatList.add(new Seat(i+1));
-        }
+        //for (int i=0; i<numSeats; i++) {
+        //    seatList.add(new Seat(i));
+        //}
 
-
-        // initialize the seat array
+        // Set up the linkages for the seat elements to create the linked list
         int i = 0;
         if (numSeats >= 1) {
-            seatList.add(new Seat(i+1));
+            seatList.add(new Seat(i));
         }
         for (i = 1; i < numSeats; i++) {
-            seatList.add(new Seat(i+1));
+            seatList.add(new Seat(i));
             seatList.get(i-1).setNext(seatList.get(i));
         }
         seatList.get(i-1).setNext(seatList.get(0));
@@ -194,12 +196,12 @@ public class Table {
             throw new Exception("Player '" + playerName + "' does not exist.");
         }
         // check to see if the seat is already taken
-        else if (seatList.get(seatNum - 1).getPlayer() != null) {
+        else if (seatList.get(seatNum).getPlayer() != null) {
             // This seat is already taken.
             throw new Exception("Failed to seat player \"" + playerName + "\" in seat " + seatNum + ". Seat already taken.");
         } else {
             // Seat is open
-            seatList.get(seatNum - 1).setPlayer(player);
+            seatList.get(seatNum).setPlayer(player);
             numPlayers++;
 
             // Notify all players that the table has been updates
@@ -222,9 +224,8 @@ public class Table {
         // Find the seat the player is currently occupying (if any)
         int seatNum = getPlayerSeatNum(playerName);
 
-        //if (seats[seatNum - 1].getPlayer() != null) {
-        if (seatNum > 0) {
-            seatList.get(seatNum - 1).setPlayer(null);
+        if (seatNum >= 0) {
+            seatList.get(seatNum).setPlayer(null);
             numPlayers--;
 
             // Notify all players that the table has been updates
@@ -269,13 +270,13 @@ public class Table {
         int seatNum = getPlayerSeatNum(playerName);
 
         // Make sure the player is actually sitting at the table
-        if (seatNum == 0) {
+        if (seatNum == -1) {
             // Do nothing - player is not sitting at a seat, nor is he in the hand.
             return ("Player not sitting at the table");
         } else {
             // Move the current bet to the pot
-            potList.get(currentPotNum).incrementSize(seatList.get(seatNum-1).getPlayerBet());
-            seatList.get(seatNum-1).setPlayerBet(0);
+            potList.get(currentPotNum).incrementSize(seatList.get(seatNum).getPlayerBet());
+            seatList.get(seatNum).setPlayerBet(0);
 
             // Remove the player eligibility from all pots
             for (Pot pot : potList) {
@@ -283,10 +284,10 @@ public class Table {
             }
 
             // Mark the seat as not in the current hand.
-            seatList.get(seatNum - 1).setInHand(false);
+            seatList.get(seatNum).setInHand(false);
 
             // Clear this seat's cards.
-            seatList.get(seatNum - 1).clearCards();
+            seatList.get(seatNum).clearCards();
         }
 
         // If all players but one have folded, end the game.  The single remaining player is the winner.
@@ -354,16 +355,16 @@ public class Table {
         }
 
         // If the bet is greater than the player's stack, assume the player is going All In.
-        if (currentBet > seatList.get(seatNum - 1).getPlayer().getStack()) {
-            betAmount = seatList.get(seatNum - 1).getPlayer().getStack();
+        if (currentBet > seatList.get(seatNum).getPlayer().getStack()) {
+            betAmount = seatList.get(seatNum).getPlayer().getStack();
         }
 
         try {
             // Deduct the chips from the players stack and set the seat's current bet to the new bet.
-            seatList.get(seatNum-1).getPlayer().adjustStack(betAmount * -1);
+            seatList.get(seatNum).getPlayer().adjustStack(betAmount * -1);
 
             // Update the current bet for the seat
-            seatList.get(seatNum-1).setPlayerBet(betAmount);
+            seatList.get(seatNum).setPlayerBet(betAmount);
 
             // If the bet is an initial bet or raise, update the currentBet for the table as well as what seat number made the bet.
             if (betAmount > currentBet) {
@@ -377,14 +378,14 @@ public class Table {
                     ActionLog.getInstance().add(playerName + " raises.");
                 }
 
+                // Set the current bet amount for the table and which seat made the bet/raise.
                 currentBet = betAmount;
                 currentBetPosition = seatNum;
-
             }
 
             // Check to see if the player is All In. If so, set the seat state as such.
-            if (seatList.get(seatNum-1).getPlayer().getStack() == 0) {
-                seatList.get(seatNum-1).setIsAllIn(true);
+            if (seatList.get(seatNum).getPlayer().getStack() == 0) {
+                seatList.get(seatNum).setIsAllIn(true);
             }
 
             // Advance the action.
@@ -416,22 +417,22 @@ public class Table {
         int seatNum = getPlayerSeatNum(playerName);
 
         // Figure out the difference between the table's current bet and the player's current bet.  This is the call amount.
-        int callAmount = currentBet - seatList.get(seatNum-1).getPlayerBet();
+        int callAmount = currentBet - seatList.get(seatNum).getPlayerBet();
 
         // Check first that there are enough chips for a full call. If not, player is going all in.
-        if (callAmount > seatList.get(seatNum-1).getPlayer().getStack()) {
-            callAmount = seatList.get(seatNum-1).getPlayer().getStack();
+        if (callAmount > seatList.get(seatNum).getPlayer().getStack()) {
+            callAmount = seatList.get(seatNum).getPlayer().getStack();
         }
 
         try {
             // Deduct the difference between the table's current bet and the player's current bet from the player's stack
-            seatList.get(seatNum-1).getPlayer().adjustStack(callAmount * -1);
-            seatList.get(seatNum-1).increasePlayerBet(callAmount);
+            seatList.get(seatNum).getPlayer().adjustStack(callAmount * -1);
+            seatList.get(seatNum).increasePlayerBet(callAmount);
 
 
             // Check to see if the player stack is now 0. If so, they are all in.
-            if (seatList.get(seatNum-1).getPlayer().getStack() == 0) {
-                seatList.get(seatNum-1).setIsAllIn(true);
+            if (seatList.get(seatNum).getPlayer().getStack() == 0) {
+                seatList.get(seatNum).setIsAllIn(true);
             }
         }
         catch (Exception e) {
@@ -492,22 +493,22 @@ public class Table {
 
             // Find the seat the player is in
             int seatNum = getPlayerSeatNum(playerName);
-            int betSize = seatList.get(seatNum-1).getPlayer().getStack();
+            int betSize = seatList.get(seatNum).getPlayer().getStack();
 
             // Set the seat's player bet to the player's entire stack
-            seatList.get(seatNum-1).increasePlayerBet(betSize);
+            seatList.get(seatNum).increasePlayerBet(betSize);
 
             // Set the player's stack size to zero
-            seatList.get(seatNum-1).getPlayer().adjustStack(betSize * -1);
+            seatList.get(seatNum).getPlayer().adjustStack(betSize * -1);
 
             // Check to see if this is the new table current bet
-            if (seatList.get(seatNum-1).getPlayerBet() > currentBet) {
-                currentBet = seatList.get(seatNum-1).getPlayerBet();
+            if (seatList.get(seatNum).getPlayerBet() > currentBet) {
+                currentBet = seatList.get(seatNum).getPlayerBet();
                 currentBetPosition = seatNum;
             }
 
             // Set the player/seat to All In
-            seatList.get(seatNum-1).setIsAllIn(true);
+            seatList.get(seatNum).setIsAllIn(true);
 
             // Log the all in
             ActionLog.getInstance().add(playerName + " goes all-in.");
@@ -529,7 +530,7 @@ public class Table {
      *
      * @param playerName - Name of the player for which to find the seat number.
      *
-     * @return The seat number the player is currently occupying. Retunrs 0 if the player is not currently in a seat.
+     * @return The seat number the player is currently occupying. Returns -1 if the player is not currently in a seat.
      *         (Does NOT return the array index into seats.)
      */
     public Integer getPlayerSeatNum(String playerName) {
@@ -542,8 +543,8 @@ public class Table {
             }
         }
 
-        // If we got here, the player was not found in any seat. Return 0;
-        return 0;
+        // If we got here, the player was not found in any seat. Return -1;
+        return -1;
     }
 
     /**
@@ -597,10 +598,10 @@ public class Table {
                 winningSeats.add(seatNum);
                 winningHand = HandType.WIN_BY_FOLD;
                 // Give this player all the chips in the pot.
-                seatList.get(seatNum-1).getPlayer().adjustStack(pot.getPotSize());
+                seatList.get(seatNum).getPlayer().adjustStack(pot.getPotSize());
 
                 // Log the win.
-                ActionLog.getInstance().add(seatList.get(seatNum-1).getPlayer().getPlayerName() +
+                ActionLog.getInstance().add(seatList.get(seatNum).getPlayer().getPlayerName() +
                                             " wins Pot # " +
                                             potNum +
                                             " by default.");
@@ -614,7 +615,7 @@ public class Table {
                 for (Integer seatNum : pot.getSeatNumberList()) {
                     // If the seat is in, make a new hand and add all the seat's cards to the hand
                     Hand hand = new Hand(seatNum);
-                    hand.addCards(seatList.get(seatNum-1).getCards());
+                    hand.addCards(seatList.get(seatNum).getCards());
                     hand.addCards(board);
 
                     // Evaluate the hand to determine it's rank
@@ -661,13 +662,13 @@ public class Table {
                     ActionLog.getInstance().add("Pot #" +
                                                 potNum +
                                                 " " +
-                                                seatList.get(winningHand.getSeatNum()-1).getPlayer().getPlayerName() +
+                                                seatList.get(winningHand.getSeatNum()).getPlayer().getPlayerName() +
                                                 " wins with a " +
                                                 winningHand.getType());
                 }
 
                 // Hand out the remainders starting to the left of the dealer
-                Seat seat = seatList.get(dealerPosition-1);
+                Seat seat = seatList.get(dealerPosition);
                 while (remainder > 0) {
                     // Get the next seat
                     seat = seat.getNext();
@@ -712,18 +713,13 @@ public class Table {
         currentBetPosition = 0;
 
         try {
-            // Award the pot to the winner
-
-            // TODO: award winnings from multiple pots
-            // For now, award the winnings from the single pot.  Check each hand to see if there are
-            // winnings to award.
-
+            // Award the pot to the winners
             for (Pot pot : potList) {
                 List<Hand> handList = pot.getHandList();
                 for (Hand hand : handList) {
                     if (hand.getWinnings() > 0) {
                         // There's something to award.
-                        seatList.get(hand.getSeatNum()-1).getPlayer().adjustStack(hand.getWinnings());
+                        seatList.get(hand.getSeatNum()).getPlayer().adjustStack(hand.getWinnings());
 
                         // TODO: Add to the action log: Pot #, player, hand, amount of chips won
                     }
@@ -800,22 +796,22 @@ public class Table {
         winningSeats.clear();
 
         // Move the dealer button
-        if (dealerPosition==0) {
+        if (dealerPosition == -1) {
             // This must be the very first game.  Randomly pick a seat and then move the dealer button to the next player.
             Random r = new Random();
-            dealerPosition = r.nextInt(numSeats) + 1;
+            dealerPosition = r.nextInt(numSeats-1);
         }
 
         // Move the buttons (dealer, small blind, and big blind) and set the currentAction position.
         incrementDealerPosition();
 
         // Pull small blind
-        seatList.get(smallBlindPosition-1).getPlayer().adjustStack((bigBlind/2) * -1);
-        seatList.get(smallBlindPosition-1).increasePlayerBet(bigBlind/2);
+        seatList.get(smallBlindPosition).getPlayer().adjustStack((bigBlind/2) * -1);
+        seatList.get(smallBlindPosition).increasePlayerBet(bigBlind/2);
 
         // Pull big blind
-        seatList.get(bigBlindPosition-1).getPlayer().adjustStack(bigBlind * -1);
-        seatList.get(bigBlindPosition-1).increasePlayerBet(bigBlind);
+        seatList.get(bigBlindPosition).getPlayer().adjustStack(bigBlind * -1);
+        seatList.get(bigBlindPosition).increasePlayerBet(bigBlind);
 
         // Set the currentBet to the big blind
         currentBet = bigBlind;
@@ -831,7 +827,7 @@ public class Table {
 
         // Deal 2 cards to each player
         for (int i=0; i<2; i++) {
-            Seat seatPtr = seatList.get(dealerPosition-1).getNext();
+            Seat seatPtr = seatList.get(dealerPosition).getNext();
             while (seatPtr.getSeatNum() != dealerPosition) {
                 // If there is a player in this seat and they are in the hand, deal a card
                 if (seatPtr.getPlayer() != null &&
@@ -896,7 +892,7 @@ public class Table {
                         break;
                     }
                 }
-                else if (seatList.get(newAction-1).getIsAllIn() != true) {
+                else if (seatList.get(newAction).getIsAllIn() != true) {
                         // Check to see if the next player is not already all in. If not, this seat is the new action.
                         currentAction = newAction;
                         break;
@@ -973,16 +969,6 @@ public class Table {
                     }
                 }
 
-
-
-
-
-
-
-
-
-
-
                 // Check for the new smallest bet
                 smallestBet = 0;
                 for (Seat seat : seatList) {
@@ -1047,12 +1033,12 @@ public class Table {
                 break;
             case RIVER:
                 roundState = SHOWDOWN;
-                currentAction = 0;
+                currentAction = -1;
                 // Reset currentPotNum to use for processing the pot(s) and determining the winner(s)
                 currentPotNum = -1;
                 break;
             case SHOWDOWN:
-                currentAction = 0;
+                currentAction = -1;
                 // Process each pot in the potList to determine the winner(s) and award chips.
                 currentPotNum++;
                 // If currentPotNum is greater than the number of pots, then we've processed the winners for all the pots.
@@ -1080,16 +1066,16 @@ public class Table {
      * @returns Seat position of the next player; 0 if next player not found
      */
     public int findNextPlayer(int seatNum) throws Exception {
-        if (seatNum <=0 || seatNum > numSeats) {
+        if (seatNum <0 || seatNum >= numSeats) {
             throw new Exception("Invalid seatNum '" + seatNum + "' passed into findNextPlayer()");
         }
 
         // Find the next seat with a player in it.
-        Seat nextSeat = seatList.get(seatNum-1).getNext();
+        Seat nextSeat = seatList.get(seatNum).getNext();
 
         // Keep going around until either the next player is found,
         // or we've circled the whole table and are back to the current position.
-        while (nextSeat != seatList.get(seatNum-1)) {
+        while (nextSeat != seatList.get(seatNum)) {
             // if nextSeat has a player in it, then this is the next player.
             if (nextSeat.getPlayer() != null && nextSeat.getInHand()) {
                 return nextSeat.getSeatNum();
@@ -1101,7 +1087,7 @@ public class Table {
         }
 
         // No next player found. Return 0
-        return 0;
+        return -1;
     }
 
     /**
@@ -1121,7 +1107,7 @@ public class Table {
 
         while (newSeatNum != seatNum) {
             // If this player is not All In, return the seat number
-            if (!seatList.get(newSeatNum-1).getIsAllIn()) {
+            if (!seatList.get(newSeatNum).getIsAllIn()) {
                 return newSeatNum;
             }
             // Otherwise, move on to the next player
@@ -1131,7 +1117,7 @@ public class Table {
         }
 
         // No additional player that's not All In was found.  Return 0.
-        return 0;
+        return -1;
     }
 
     /**
@@ -1173,27 +1159,27 @@ public class Table {
         try {
             //myTable.initialize(8, 2);
 
-//            PlayerDatabase.getInstance().createPlayer("Claire");
+            //PlayerDatabase.getInstance().createPlayer("Claire");
             PlayerDatabase.getInstance().login("Claire");
-//            PlayerDatabase.getInstance().getPlayer("Claire").buyIn(160);
-//            PlayerDatabase.getInstance().createPlayer("Traci");
+            //PlayerDatabase.getInstance().getPlayer("Claire").buyIn(160);
+            //PlayerDatabase.getInstance().createPlayer("Traci");
             PlayerDatabase.getInstance().login("Traci");
-//            PlayerDatabase.getInstance().getPlayer("Traci").buyIn(160);
-//            PlayerDatabase.getInstance().createPlayer("Zoe");
+            //PlayerDatabase.getInstance().getPlayer("Traci").buyIn(160);
+            //PlayerDatabase.getInstance().createPlayer("Zoe");
             PlayerDatabase.getInstance().login("Zoe");
-//            PlayerDatabase.getInstance().getPlayer("Zoe").buyIn(160);
+            //PlayerDatabase.getInstance().getPlayer("Zoe").buyIn(160);
 
-            myTable.sitDown("Claire", 1);
-            myTable.sitDown("Traci", 2);
-            myTable.sitDown("Zoe", 3);
+            myTable.sitDown("Claire", 0);
+            myTable.sitDown("Traci", 1);
+            myTable.sitDown("Zoe", 2);
 
-            myTable.dealerPosition = 3;
+            myTable.dealerPosition = 2;
 
             myTable.newRound();
 
-            System.out.println(myTable.getTableStateAsJSON("Claire"));
+            //System.out.println(myTable.getTableStateAsJSON("Claire"));
 
-            myTable.call("Claire");
+            myTable.fold("Claire");
             myTable.call("Traci");
             myTable.call("Zoe");
 

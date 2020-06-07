@@ -34,7 +34,7 @@ class Table extends React.Component {
         // Define the relative location for the elements of each seat canvas.
         // Each seat will have a different arrangement of its elements depending on its position around the table
         this.seatElementOffsets = [
-            // Seat 1
+            // Seat 0
             {
                 name: {x: 5, y: 25},
                 stack: {x: 100, y: 25},
@@ -184,7 +184,7 @@ class Table extends React.Component {
                 if (this.state.tableInfo.seats[i].player == null) {
                     // Seat is open.  Call sitDown() to place the player in this seat.
                     // Don't forget to increment the counter (which starts at 0) to get the seat number (which starts at 1).
-                    this.sitDown(i+1);
+                    this.sitDown(i);
                 }
             }
         }
@@ -407,8 +407,8 @@ class Table extends React.Component {
     async drawSeat(seat) {
         // Create a new canvas upon which to draw the seat elements
         var canvas = document.createElement('canvas');
-        canvas.width = 200;
-        canvas.height = 200;
+        canvas.width = this.seatAreaWidth;
+        canvas.height = this.seatAreaHeight;
         var ctx = canvas.getContext("2d");
 
         // TODO: temp border for seat canvas placement - REMOVE
@@ -430,8 +430,11 @@ class Table extends React.Component {
         ctx.textAlign = "start";
         ctx.fillText(
             seat.player.playerName,
-            this.seatElementOffsets[seat.seatNum - 1].name.x,
-            this.seatElementOffsets[seat.seatNum - 1].name.y
+            // TODO: replace these lines when custom offsets for each seat are complete.  For now, just use the same set.
+            //this.seatElementOffsets[seat.seatNum].name.x,
+            //this.seatElementOffsets[seat.seatNum].name.y
+            this.seatElementOffsets[0].name.x,
+            this.seatElementOffsets[0].name.y
         );
 
 
