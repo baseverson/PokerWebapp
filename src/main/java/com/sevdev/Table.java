@@ -199,6 +199,10 @@ public class Table {
         else if (seatList.get(seatNum).getPlayer() != null) {
             // This seat is already taken.
             throw new Exception("Failed to seat player \"" + playerName + "\" in seat " + seatNum + ". Seat already taken.");
+        }
+        else if (getPlayerSeatNum(playerName) >= 0) {
+            // The player is already seated.
+            throw new Exception("Failed to seat player \"" + playerName + "\" in seat " + seatNum + ". The player is already seated.");
         } else {
             // Seat is open
             seatList.get(seatNum).setPlayer(player);
@@ -707,10 +711,10 @@ public class Table {
         roundState = CLEAN_UP;
 
         // Reset the action position
-        currentAction = 0;
+        currentAction = -1;
 
         // Reset the bet position
-        currentBetPosition = 0;
+        currentBetPosition = -1;
 
         try {
             // Award the pot to the winners
@@ -1005,7 +1009,7 @@ public class Table {
             if (getPlayersInHandNotAllIn() <= 1) {
                 // One or less players left in the hand that are not all in.  No player action to be taken.
                 // Set the action to 0 to tell the UI that no one can act.
-                currentAction = 0;
+                currentAction = -1;
             }
             else {
                 currentAction = findNextPlayerNotAllIn(dealerPosition);
@@ -1017,7 +1021,7 @@ public class Table {
         catch (Exception e) {
             System.out.println("Unable to set action position. Dealer position passed into findNextPlayer() is invalid.");
             System.out.println(e.getStackTrace());
-            currentAction = 0;
+            currentAction = -1;
         }
 
         // Move to the next round state

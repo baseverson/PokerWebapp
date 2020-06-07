@@ -9,6 +9,23 @@ class Table extends React.Component {
         // Number of seats at the table
         this.numSeats = 10;
 
+        // Offsets for the board cards. Controls the placement of the board card images on the table.
+        this.boardOffsets = {
+            x: 495,
+            y: 250,
+            spacing: 5,
+            cardWidth: 80,
+            cardHeight: 120
+        }
+
+        // Offsets for the pots. Controls the placement of the pots on the table.
+        this.potOffsets = {
+            x: 450,
+            y: 400,
+            potSpacing: 100,
+            nameSpacing: 20
+        };
+
         // Define the dimensions for each seat's space on the canvas
         this.seatAreaWidth = 200;
         this.seatAreaHeight = 200;
@@ -16,16 +33,16 @@ class Table extends React.Component {
         // Define the location of each seat's space on the canvas
         this.seatOffsets = [
             // top row
-            { x: 355, y: 90 },
-            { x: 605, y: 90 },
-            { x: 855, y: 90 },
+            { x: 355, y: 15 },
+            { x: 605, y: 15 },
+            { x: 855, y: 15 },
             // right side
             { x: 1075, y: 170 },
             { x: 1075, y: 420 },
             // bottom row
-            { x: 855, y: 500 },
-            { x: 605, y: 500 },
-            { x: 355, y: 500 },
+            { x: 855, y: 575 },
+            { x: 605, y: 575 },
+            { x: 355, y: 575 },
             // left side
             { x: 130, y: 420 },
             { x: 130, y: 170 },
@@ -36,26 +53,16 @@ class Table extends React.Component {
         this.seatElementOffsets = [
             // Seat 0
             {
-                name: {x: 5, y: 25},
-                stack: {x: 100, y: 25},
-                cards: {x: 5, y: 30},
-                buttons: {x: 5, y: 150},
-                bet: {x: 100, y: 150}
+                name: {x: 15, y: 25},
+                stack: {x: 110, y: 25},
+                cards: {x: 15, y: 30},
+                buttons: {x: 15, y: 155},
+                allin: {x: 55, y: 155},
+                bet: {x: 110, y: 170},
+                winner: {x: 110, y: 155}
             }
 
         ];
-
-        // Create collection of seat components
-        this.seatComponents = [];
-        for (let i=0; i<this.numSeats; i++) {
-            this.seatComponents.push(
-                new Seat(
-                    document.getElementById("tableCanvas"),
-                    this.seatOffsets[i].x,
-                    this.seatOffsets[i].y
-                )
-            );
-        }
     }
 
     /**
@@ -66,8 +73,7 @@ class Table extends React.Component {
         let sources = [
             "./graphics/background/red_texture_shadow_side.jpg",
             "./graphics/background/table-black.png",
-            "./graphics/openSeat.png"
-/*
+            "./graphics/openSeat.png",
             "./graphics/Dealer.png",
             "./graphics/BigBlind.png",
             "./graphics/SmallBlind.png",
@@ -126,15 +132,15 @@ class Table extends React.Component {
             "./graphics/J_spades.png",
             "./graphics/Q_spades.png",
             "./graphics/K_spades.png",
-            "./graphics/A_spades.png",
-*/
+            "./graphics/A_spades.png"
         ];
+
         // Pre-load the graphics specified above. Once the pre-load is complete, pull the latest table info
         // This will force a table display update.
-        this.preloadImages(sources, this.state.images, this.retrieveTableInfo());
+        this.preloadImages(sources, this.state.images, this.drawTable());
 
         // One the graphics are pre-loaded, pull the latest table info (this will force a table display update
-        //this.retrieveTableInfo();
+        this.retrieveTableInfo();
     }
 
     /**
@@ -181,7 +187,8 @@ class Table extends React.Component {
             {
                 console.log("This click is in the seat #" + i + " area!");
                 // Found which seat area this click is in.  Check to see if the seat is current open.
-                if (this.state.tableInfo.seats[i].player == null) {
+                if (this.state.tableInfo.seats[i].player == null &&
+                     this.playerSeatNum(getPlayerName()) < 0) {
                     // Seat is open.  Call sitDown() to place the player in this seat.
                     // Don't forget to increment the counter (which starts at 0) to get the seat number (which starts at 1).
                     this.sitDown(i);
@@ -189,6 +196,18 @@ class Table extends React.Component {
             }
         }
         //console.log("You clicked on the canvas at " + event.offsetX + ":" + event.offsetY);
+    }
+
+    playerSeatNum(playerName) {
+        var result = -1;
+        for (var i=0; i<this.state.tableInfo.numSeats; i++) {
+            if (this.state.tableInfo.seats[i].player != null) {
+                if (this.state.tableInfo.seats[i].player.playerName == getPlayerName()) {
+                    result = i;
+                }
+            }
+        }
+        return result;
     }
 
     /**
@@ -246,8 +265,12 @@ class Table extends React.Component {
 
                 // Clear the playerInfo state
                 this.setState({tableInfo: JSON.parse(xhttp.responseText)});
-                this.drawTable();
 
+                // Pass the log info to the ActionLog component for display
+                this.refs.actionLogComponent.updateLogInfo(this.state.tableInfo.log);
+
+                // Draw the table based on the info just received.
+                this.drawTable();
             }
             else if (xhttp.readyState == 4 && xhttp.status == 500) {
                 console.log("Unable to update the state of the table. Error: " + xhttp.responseText);
@@ -263,7 +286,7 @@ class Table extends React.Component {
     /**
      * Retrieve the canvas from the DOM and update it based on the current table info retrieved.
      */
-    drawTable() {
+    drawTable = () => {
         // Get the canvas and context from the DOM
         var canvas = document.getElementById("tableCanvas");
         var ctx = canvas.getContext("2d")
@@ -286,19 +309,24 @@ class Table extends React.Component {
      * Draw the backdrop for the table
      * @param ctx - context upon which to draw the backdrop
      */
-    drawBackground(ctx) {
+    async drawBackground(ctx) {
+        await this.drawImg(ctx, "./graphics/background/red_texture_shadow_side.jpg", 0, 0, 1400, 800);
+/*
         let img = new Image();
         img.src = "./graphics/background/red_texture_shadow_side.jpg";
         //img.onload = () => {
             ctx.drawImage(img, 0, 0, 1400, 800);
         //}
+*/
     }
 
     /**
      * Draw the table image
      * @param ctx - context upon which to draw the table image
      */
-    drawTableImage(ctx) {
+    async drawTableImage(ctx) {
+        await this.drawImg(ctx, "./graphics/background/table-black.png", 100, 100, 1200, 600);
+/*
         let img = new Image();
         img.src = "./graphics/background/table-black.png";
         //img.onload = () => {
@@ -306,6 +334,7 @@ class Table extends React.Component {
             const y_offset = 100;
             ctx.drawImage(img, x_offset, y_offset, 1200, 600);
         //}
+ */
     }
 
     /**
@@ -317,13 +346,6 @@ class Table extends React.Component {
             // No table state retrieved. Just return.
             return;
         }
-
-        // Offsets for the board cards. Controls the placement of the board card images on the table.
-        const x_offset = 495;
-        const y_offset = 250;
-        const x_spacing = 85;
-        const cardWidth = 80;
-        const cardHeight = 120;
 
         let cardFileName = "";
 
@@ -347,7 +369,13 @@ class Table extends React.Component {
                 // Setting the image source will load the image
                 img.onload = () => {
                     // Once the image is loaded, draw it on the canvas
-                    ctx.drawImage(img, x_offset + (boardCount * x_spacing), y_offset, cardWidth, cardHeight);
+                    ctx.drawImage(
+                        img,
+                        this.boardOffsets.x + (boardCount * (this.boardOffsets.cardWidth + this.boardOffsets.spacing)),
+                        this.boardOffsets.y,
+                        this.boardOffsets.cardWidth,
+                        this.boardOffsets.cardHeight
+                    );
                 }
                 img.src = "./graphics/" + cardFileName;
             }
@@ -364,17 +392,29 @@ class Table extends React.Component {
             return;
         }
 
-        const x_offset = 500;
-        const y_offset = 400;
-
-        // TODO: draw the real pot information
-
         ctx.font = "15px Arial";
         ctx.fillStyle = "#ffffff";
         ctx.textAlign = "start";
-        ctx.fillText("Pot #1: " + this.state.tableInfo.bigBlind, x_offset, y_offset);
-        ctx.fillText("PlayerA", x_offset, y_offset + 20);
-        ctx.fillText("PlayerB", x_offset, y_offset + 40);
+
+        // Loop through each pot
+        for (var i=0; i<this.state.tableInfo.potList.length; i++) {
+            var pot = this.state.tableInfo.potList[i];
+            // Draw the pot label and size
+            ctx.fillText(
+                "Pot #" + i + ": " + pot.potSize,
+                 this.potOffsets.x + (this.potOffsets.potSpacing * i),
+                 this.potOffsets.y
+            );
+
+            // Draw the names eligible for this pot
+            for (var j=0; j<pot.seatNumberList.length; j++) {
+                ctx.fillText(
+                    this.state.tableInfo.seats[pot.seatNumberList[j]].player.playerName,
+                    this.potOffsets.x + (this.potOffsets.potSpacing * i),
+                    this.potOffsets.y + (this.potOffsets.nameSpacing * (j+1))
+                );
+            }
+        }
     }
 
     /**
@@ -412,22 +452,29 @@ class Table extends React.Component {
         var ctx = canvas.getContext("2d");
 
         // TODO: temp border for seat canvas placement - REMOVE
-        ctx.strokeStyle = "#FFFFFF"
-        ctx.strokeRect(0, 0, canvas.width, canvas.height, );
+        //ctx.strokeStyle = "white";
+        //ctx.strokeRect(0, 0, canvas.width, canvas.height);
 
         // Check to see if the seat is open
         if (seat.player == null) {
-            // Seat is open. Draw the open seat / sit down icon and return the canvas.
-            await this.drawImg(ctx, "./graphics/openSeat.png", 45, 50, 110, 100);
+            // Seat is open. If the player is not already sitting in a seat,
+            // draw the open seat / sit down icon and return the canvas.
+            if (this.playerSeatNum(getPlayerName()) < 0) {
+                await this.drawImg(ctx, "./graphics/openSeat.png", 45, 50, 110, 100);
+            }
             return canvas;
         }
 
         // There is a player in the seat.
 
-        // TODO: temp draw player's name
-        ctx.font = "20px Arial";
+        // Font style for the seat display
+        ctx.font = "15px Arial";
         ctx.fillStyle = "#ffffff";
         ctx.textAlign = "start";
+
+        //
+        // Draw player's name
+        //
         ctx.fillText(
             seat.player.playerName,
             // TODO: replace these lines when custom offsets for each seat are complete.  For now, just use the same set.
@@ -437,35 +484,150 @@ class Table extends React.Component {
             this.seatElementOffsets[0].name.y
         );
 
+        //
+        // Draw player stack
+        //
+        ctx.fillText(
+            "Stack: " + seat.player.stack,
+            // TODO: replace these lines when custom offsets for each seat are complete.  For now, just use the same set.
+            //this.seatElementOffsets[seat.seatNum].stack.x,
+            //this.seatElementOffsets[seat.seatNum].stack.y
+            this.seatElementOffsets[0].stack.x,
+            this.seatElementOffsets[0].stack.y
+        );
 
-        // TODO - draw player name
-        // TODO - draw player stack
-        // TODO - draw special buttons (Dealer, SB, BB, All In)
-        // TODO - draw action indicator
-        /*
-                const x_cardSpacing = 55;
-                const cardWidth = 50;
-                const cardHeight = 75;
+        //
+        // Draw cards
+        //
+        const cardSpacing = 5;
+        const cardWidth = 80;
+        const cardHeight = 120;
 
-                //
-                // Draw cards
-                //
-                for (let i=0; i<seat.cards.length; i++) {
-                    let card = seat.cards[i];
-                    let img = new Image();
-                    if (card.hidden){
-                        img.src = "./graphics/" + "back.png";
-                    } else {
-                        // Setting the image source will load the image
-                        img.src = "./graphics/" + card.rank + "_" + card.suit + ".png";
-                    }
+        let imgURL = "";
 
-                    img.onload = () => {
-                        // Once the image is loaded, draw it on the canvas
-                        ctx.drawImage(img, x_offset + (i * x_cardSpacing), y_offset, cardWidth, cardHeight);
-                    }
+        // Loop through the list of cards for the seat
+        for (let i=0; i<seat.cards.length; i++) {
+            let card = seat.cards[i];
+
+            // Make sure the card isn't null (as it could be before a hand is dealt).
+            if (card != null) {
+
+                if (card.hidden){
+                    // If the card is hidden, just show the card back image
+                    imgURL = "./graphics/" + "back.png";
+                } else {
+                    imgURL = "./graphics/" + card.rank + "_" + card.suit + ".png";
                 }
-         */
+
+                // Use custom drawImg() function for synchronous draw
+                await this.drawImg(
+                    ctx,
+                    imgURL,
+                    // TODO: replace these lines when custom offsets for each seat are complete.  For now, just use the same set.
+                    //this.seatElementOffsets[seat.seatNum].cards.x + (i * x_cardSpacing),
+                    //this.seatElementOffsets[seat.seatNum].cards.y,
+                    this.seatElementOffsets[0].cards.x + (i * (cardWidth + cardSpacing)),
+                    this.seatElementOffsets[0].cards.y,
+                    cardWidth,
+                    cardHeight);
+            }
+        }
+
+        //
+        // Draw special buttons (Dealer, SB, BB)
+        //
+        const buttonSize = 40;
+        var buttonURL = "";
+
+        if (this.state.tableInfo.dealerPosition == seat.seatNum) {
+            buttonURL = "./graphics/Dealer.png";
+        }
+        else if (this.state.tableInfo.smallBlindPosition == seat.seatNum) {
+            buttonURL = "./graphics/SmallBlind.png";
+        }
+        else if (this.state.tableInfo.bigBlindPosition == seat.seatNum) {
+            buttonURL = "./graphics/BigBlind.png";
+        }
+
+        if (buttonURL != "") {
+            await this.drawImg(
+                ctx,
+                buttonURL,
+                // TODO: replace these lines when custom offsets for each seat are complete.  For now, just use the same set.
+                //this.seatElementOffsets[seat.seatNum].buttons.x,
+                //this.seatElementOffsets[seat.seatNum].buttons.y,
+                this.seatElementOffsets[0].buttons.x,
+                this.seatElementOffsets[0].buttons.y,
+                buttonSize,
+                buttonSize
+            );
+        }
+
+        //
+        // Draw All In button
+        //
+        const allinSize = 40;
+        if (seat.isAllIn == true) {
+            await this.drawImg(
+                ctx,
+                "./graphics/AllIn.png",
+                // TODO: replace these lines when custom offsets for each seat are complete.  For now, just use the same set.
+                //this.seatElementOffsets[seat.seatNum].allin.x,
+                //this.seatElementOffsets[seat.seatNum].allin.y,
+                this.seatElementOffsets[0].allin.x,
+                this.seatElementOffsets[0].allin.y,
+                allinSize,
+                allinSize
+            );
+        }
+
+        //
+        // Draw current bet
+        //
+        if (seat.playerBet > 0) {
+            ctx.fillText(
+            "Bet: " + seat.playerBet,
+                // TODO: replace these lines when custom offsets for each seat are complete.  For now, just use the same set.
+                //this.seatElementOffsets[seat.seatNum].bet.x,
+                //this.seatElementOffsets[seat.seatNum].bet.y
+                this.seatElementOffsets[0].bet.x,
+                this.seatElementOffsets[0].bet.y
+            );
+        }
+
+        //
+        // Draw action indicator
+        //
+        if (this.state.tableInfo.currentAction == seat.seatNum) {
+            ctx.strokeStyle = "yellow";
+            ctx.lineWidth = 10;
+            ctx.strokeRect(0, 0, canvas.width, canvas.height);
+        }
+
+        //
+        // Draw winner indicator
+        //
+        const winnerBadgeSize = 40;
+        for (let i=0; i<this.state.tableInfo.winningSeats.length; i++) {
+            if (this.state.tableInfo.winningSeats[i] == seat.seatNum) {
+                ctx.strokeStyle = "#00FF00";
+                ctx.lineWidth = 10;
+
+                ctx.strokeRect(0, 0, canvas.width, canvas.height);
+                await this.drawImg(
+                    ctx,
+                    "./graphics/winner.jpg",
+                    // TODO: replace these lines when custom offsets for each seat are complete.  For now, just use the same set.
+                    //this.seatElementOffsets[seat.seatNum].winner.x,
+                    //this.seatElementOffsets[seat.seatNum].winner.y,
+                    this.seatElementOffsets[0].winner.x,
+                    this.seatElementOffsets[0].winner.y,
+                    winnerBadgeSize,
+                    winnerBadgeSize
+                );
+            }
+        }
+
         return canvas;
     }
 
@@ -479,8 +641,8 @@ class Table extends React.Component {
                 <canvas id="tableCanvas" width={1400} height={800} style={{border: "2px solid #000000"}}>
                     Your browser does not support the HTML5 canvas tag.
                 </canvas>
-                <PlayerActions />
-                <ActionLog />
+                <PlayerActions ref="playerActionsComponent"/>
+                <ActionLog ref="actionLogComponent"/>
             </div>
         );
     }

@@ -99,7 +99,6 @@ class App extends React.Component {
                     <Table
                         ref="tableComponent"
                     />
-                    <ActionLog />
                 </div>
             )
         }
