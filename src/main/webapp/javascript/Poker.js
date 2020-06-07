@@ -412,7 +412,7 @@ function sitDown(seatNum) {
     };
 
     xhttp.open("POST", "http://" + serverAddress + "rest/Table/sitDown?playerName=" + getPlayerName() + "&seatNum=" + seatNum, true);
-    xhttp.setRequestHeader("Content-type", "test/plain");
+    xhttp.setRequestHeader("Content-type", "text/plain");
     xhttp.send();
 }
 

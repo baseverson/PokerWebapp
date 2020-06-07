@@ -11,6 +11,3 @@ class ActionLog extends React.Component {
         );
     }
 }
-
-//ReactDOM.render(<ActionLog />, document.getElementById("actionLog"));
-

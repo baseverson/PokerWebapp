@@ -3,6 +3,10 @@ class Seat extends React.Component {
         super(props);
     }
 
+    draw() {
+        console.log(this.props);
+    }
+
     render() {
         return (
             <div>
