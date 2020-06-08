@@ -28,7 +28,7 @@ class ActionLog extends React.Component {
     render() {
         return (
             <div>
-                <textarea id="log" name="log" rows="10" cols="80" value={this.state.logString}>{this.state.logString}</textarea>
+                <textarea id="log" name="log" rows="10" cols="80" value={this.state.logString}></textarea>
             </div>
         );
     }

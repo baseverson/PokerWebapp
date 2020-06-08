@@ -137,7 +137,7 @@ class Table extends React.Component {
 
         // Pre-load the graphics specified above. Once the pre-load is complete, pull the latest table info
         // This will force a table display update.
-        this.preloadImages(sources, this.state.images, this.drawTable());
+        this.preloadImages(sources, this.state.images, this.drawTable);
 
         // One the graphics are pre-loaded, pull the latest table info (this will force a table display update
         this.retrieveTableInfo();
@@ -268,6 +268,7 @@ class Table extends React.Component {
 
                 // Pass the log info to the ActionLog component for display
                 this.refs.actionLogComponent.updateLogInfo(this.state.tableInfo.log);
+                this.refs.playerActionsComponent.updateTableInfo(this.state.tableInfo);
 
                 // Draw the table based on the info just received.
                 this.drawTable();

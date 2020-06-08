@@ -545,7 +545,7 @@ function check() {
     };
 
     xhttp.open("POST", "http://" + serverAddress + "rest/Table/check?playerName=" + getPlayerName(), true);
-    xhttp.setRequestHeader("Content-type", "test/plain");
+    xhttp.setRequestHeader("Content-type", "text/plain");
     xhttp.send();
 }
 
