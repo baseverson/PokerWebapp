@@ -310,14 +310,13 @@ class Table extends React.Component {
      * @param ctx - context upon which to draw the backdrop
      */
     async drawBackground(ctx) {
-        await this.drawImg(ctx, "./graphics/background/red_texture_shadow_side.jpg", 0, 0, 1400, 800);
-/*
+        //await this.drawImg(ctx, "./graphics/background/red_texture_shadow_side.jpg", 0, 0, 1400, 800);
+
         let img = new Image();
         img.src = "./graphics/background/red_texture_shadow_side.jpg";
         //img.onload = () => {
             ctx.drawImage(img, 0, 0, 1400, 800);
         //}
-*/
     }
 
     /**
@@ -325,8 +324,8 @@ class Table extends React.Component {
      * @param ctx - context upon which to draw the table image
      */
     async drawTableImage(ctx) {
-        await this.drawImg(ctx, "./graphics/background/table-black.png", 100, 100, 1200, 600);
-/*
+        //await this.drawImg(ctx, "./graphics/background/table-black.png", 100, 100, 1200, 600);
+
         let img = new Image();
         img.src = "./graphics/background/table-black.png";
         //img.onload = () => {
@@ -334,7 +333,6 @@ class Table extends React.Component {
             const y_offset = 100;
             ctx.drawImage(img, x_offset, y_offset, 1200, 600);
         //}
- */
     }
 
     /**
