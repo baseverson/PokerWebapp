@@ -33,36 +33,73 @@ class Table extends React.Component {
         // Define the location of each seat's space on the canvas
         this.seatOffsets = [
             // top row
-            { x: 355, y: 15 },
-            { x: 605, y: 15 },
-            { x: 855, y: 15 },
+            {x: 355, y: 15},
+            {x: 605, y: 15},
+            {x: 855, y: 15},
             // right side
-            { x: 1075, y: 170 },
-            { x: 1075, y: 420 },
+            {x: 1145, y: 170},
+            {x: 1145, y: 420},
             // bottom row
-            { x: 855, y: 575 },
-            { x: 605, y: 575 },
-            { x: 355, y: 575 },
+            {x: 855, y: 575},
+            {x: 605, y: 575},
+            {x: 355, y: 575},
             // left side
-            { x: 130, y: 420 },
-            { x: 130, y: 170 },
+            {x: 60, y: 420},
+            {x: 60, y: 170},
         ];
+    }
 
+    getSeatElementOffsets(seatNum) {
         // Define the relative location for the elements of each seat canvas.
         // Each seat will have a different arrangement of its elements depending on its position around the table
-        this.seatElementOffsets = [
-            // Seat 0
-            {
-                name: {x: 15, y: 25},
-                stack: {x: 110, y: 25},
-                cards: {x: 15, y: 30},
-                buttons: {x: 15, y: 155},
-                allin: {x: 55, y: 155},
-                bet: {x: 110, y: 170},
-                winner: {x: 110, y: 155}
-            }
-
-        ];
+        switch (seatNum) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+                return (
+                    {
+                        name: {x: 15, y: 25},
+                        stack: {x: 110, y: 25},
+                        cards: {x: 15, y: 30},
+                        buttons: {x: 15, y: 155},
+                        allin: {x: 55, y: 155},
+                        bet: {x: 110, y: 170},
+                        winner: {x: 110, y: 155}
+                    }
+                );
+                break;
+            case 5:
+            case 6:
+            case 7:
+                return (
+                    {
+                        buttons: {x: 10, y: 5},
+                        allin: {x: 55, y: 5},
+                        bet: {x: 110, y: 40},
+                        winner: {x: 110, y: 10},
+                        cards: {x: 15, y: 50},
+                        name: {x: 15, y: 190},
+                        stack: {x: 110, y: 190}
+                    }
+                );
+                break;
+            case 8:
+            case 9:
+                return (
+                    {
+                        name: {x: 15, y: 25},
+                        stack: {x: 110, y: 25},
+                        cards: {x: 15, y: 30},
+                        buttons: {x: 110, y: 155},
+                        allin: {x: 155, y: 155},
+                        bet: {x: 15, y: 180},
+                        winner: {x: 15, y: 155}
+                    }
+                );
+                break;
+        }
     }
 
     /**
@@ -78,9 +115,9 @@ class Table extends React.Component {
             "./graphics/BigBlind.png",
             "./graphics/SmallBlind.png",
             "./graphics/AllIn.png",
-            "./graphics/winner.jpg",
-            "./graphics/blank.png",
+            "./graphics/winner.png",
             "./graphics/back.png",
+            "./graphics/blank.png",
             "./graphics/2_clubs.png",
             "./graphics/3_clubs.png",
             "./graphics/4_clubs.png",
@@ -471,16 +508,16 @@ class Table extends React.Component {
         ctx.fillStyle = "#ffffff";
         ctx.textAlign = "start";
 
+        // Offsets for this specific seat
+        var seatElementOffsets = this.getSeatElementOffsets(seat.seatNum);
+
         //
         // Draw player's name
         //
         ctx.fillText(
             seat.player.playerName,
-            // TODO: replace these lines when custom offsets for each seat are complete.  For now, just use the same set.
-            //this.seatElementOffsets[seat.seatNum].name.x,
-            //this.seatElementOffsets[seat.seatNum].name.y
-            this.seatElementOffsets[0].name.x,
-            this.seatElementOffsets[0].name.y
+            seatElementOffsets.name.x,
+            seatElementOffsets.name.y
         );
 
         //
@@ -488,11 +525,8 @@ class Table extends React.Component {
         //
         ctx.fillText(
             "Stack: " + seat.player.stack,
-            // TODO: replace these lines when custom offsets for each seat are complete.  For now, just use the same set.
-            //this.seatElementOffsets[seat.seatNum].stack.x,
-            //this.seatElementOffsets[seat.seatNum].stack.y
-            this.seatElementOffsets[0].stack.x,
-            this.seatElementOffsets[0].stack.y
+            seatElementOffsets.stack.x,
+            seatElementOffsets.stack.y
         );
 
         //
@@ -522,11 +556,8 @@ class Table extends React.Component {
                 await this.drawImg(
                     ctx,
                     imgURL,
-                    // TODO: replace these lines when custom offsets for each seat are complete.  For now, just use the same set.
-                    //this.seatElementOffsets[seat.seatNum].cards.x + (i * x_cardSpacing),
-                    //this.seatElementOffsets[seat.seatNum].cards.y,
-                    this.seatElementOffsets[0].cards.x + (i * (cardWidth + cardSpacing)),
-                    this.seatElementOffsets[0].cards.y,
+                    seatElementOffsets.cards.x + (i * (cardWidth + cardSpacing)),
+                    seatElementOffsets.cards.y,
                     cardWidth,
                     cardHeight);
             }
@@ -552,11 +583,8 @@ class Table extends React.Component {
             await this.drawImg(
                 ctx,
                 buttonURL,
-                // TODO: replace these lines when custom offsets for each seat are complete.  For now, just use the same set.
-                //this.seatElementOffsets[seat.seatNum].buttons.x,
-                //this.seatElementOffsets[seat.seatNum].buttons.y,
-                this.seatElementOffsets[0].buttons.x,
-                this.seatElementOffsets[0].buttons.y,
+                seatElementOffsets.buttons.x,
+                seatElementOffsets.buttons.y,
                 buttonSize,
                 buttonSize
             );
@@ -570,11 +598,8 @@ class Table extends React.Component {
             await this.drawImg(
                 ctx,
                 "./graphics/AllIn.png",
-                // TODO: replace these lines when custom offsets for each seat are complete.  For now, just use the same set.
-                //this.seatElementOffsets[seat.seatNum].allin.x,
-                //this.seatElementOffsets[seat.seatNum].allin.y,
-                this.seatElementOffsets[0].allin.x,
-                this.seatElementOffsets[0].allin.y,
+                seatElementOffsets.allin.x,
+                seatElementOffsets.allin.y,
                 allinSize,
                 allinSize
             );
@@ -586,11 +611,8 @@ class Table extends React.Component {
         if (seat.playerBet > 0) {
             ctx.fillText(
             "Bet: " + seat.playerBet,
-                // TODO: replace these lines when custom offsets for each seat are complete.  For now, just use the same set.
-                //this.seatElementOffsets[seat.seatNum].bet.x,
-                //this.seatElementOffsets[seat.seatNum].bet.y
-                this.seatElementOffsets[0].bet.x,
-                this.seatElementOffsets[0].bet.y
+                seatElementOffsets.bet.x,
+                seatElementOffsets.bet.y
             );
         }
 
@@ -615,12 +637,9 @@ class Table extends React.Component {
                 ctx.strokeRect(0, 0, canvas.width, canvas.height);
                 await this.drawImg(
                     ctx,
-                    "./graphics/winner.jpg",
-                    // TODO: replace these lines when custom offsets for each seat are complete.  For now, just use the same set.
-                    //this.seatElementOffsets[seat.seatNum].winner.x,
-                    //this.seatElementOffsets[seat.seatNum].winner.y,
-                    this.seatElementOffsets[0].winner.x,
-                    this.seatElementOffsets[0].winner.y,
+                    "./graphics/winner.png",
+                    seatElementOffsets.winner.x,
+                    seatElementOffsets.winner.y,
                     winnerBadgeSize,
                     winnerBadgeSize
                 );

@@ -225,6 +225,9 @@ public class Table {
 
         // TODO: Check to make sure the player is really in the seat
 
+        // First, the player folds his hand
+        fold(playerName);
+
         // Find the seat the player is currently occupying (if any)
         int seatNum = getPlayerSeatNum(playerName);
 
@@ -279,12 +282,14 @@ public class Table {
             return ("Player not sitting at the table");
         } else {
             // Move the current bet to the pot
-            potList.get(currentPotNum).incrementSize(seatList.get(seatNum).getPlayerBet());
-            seatList.get(seatNum).setPlayerBet(0);
+            if (potList.size() > 0) {
+                potList.get(currentPotNum).incrementSize(seatList.get(seatNum).getPlayerBet());
+                seatList.get(seatNum).setPlayerBet(0);
 
-            // Remove the player eligibility from all pots
-            for (Pot pot : potList) {
-                pot.removeSeat(seatNum);
+                // Remove the player eligibility from all pots
+                for (Pot pot : potList) {
+                    pot.removeSeat(seatNum);
+                }
             }
 
             // Mark the seat as not in the current hand.
