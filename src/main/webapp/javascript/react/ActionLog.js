@@ -20,7 +20,7 @@ class ActionLog extends React.Component {
         this.setState({logString: newLogString});
     }
 
-    componentDidMount() {
+    componentDidUpdate() {
         var logArea = document.getElementById("log");
         logArea.scrollTop = logArea.scrollHeight;
     }

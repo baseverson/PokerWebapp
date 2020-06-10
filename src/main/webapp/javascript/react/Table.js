@@ -341,6 +341,9 @@ class Table extends React.Component {
         this.drawBoard(ctx);
         this.drawPot(ctx);
         this.drawAllSeats(ctx);
+
+        // Finally, update the round state
+        document.getElementById("roundState").innerHTML = this.state.tableInfo.roundState;
     }
 
     /**
@@ -661,6 +664,7 @@ class Table extends React.Component {
                 </canvas>
                 <PlayerActions ref="playerActionsComponent"/>
                 <ActionLog ref="actionLogComponent"/>
+                <div id="roundState"></div>
             </div>
         );
     }
