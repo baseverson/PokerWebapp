@@ -191,7 +191,7 @@ public class PokerPlayerManagementResource {
                     .entity("Cash out failed - player does not exist.")
                     .build();
         }
-        else if (Table.getInstance().getPlayerSeatNum(playerName) != 0) {
+        else if (Table.getInstance().getPlayerSeatNum(playerName) >= 0) {
             // Player is currently sitting at the table and can't cash out.
             return Response
                     .status(Response.Status.INTERNAL_SERVER_ERROR)

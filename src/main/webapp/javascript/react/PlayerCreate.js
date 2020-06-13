@@ -32,7 +32,7 @@ class PlayerCreate extends React.Component {
                 }
             }
 
-            xhttp.open("POST", "http://" + "localhost:8080/Poker_alpha/" + "rest/PlayerManagement/createPlayer?playerName=" + this.state.createPlayerName, true);
+            xhttp.open("POST", "http://" + serverAddress + "rest/PlayerManagement/createPlayer?playerName=" + this.state.createPlayerName, true);
             xhttp.setRequestHeader("Content-type", "text/plain");
             xhttp.send();
         }
